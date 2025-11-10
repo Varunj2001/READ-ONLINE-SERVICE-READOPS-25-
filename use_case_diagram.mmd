@@ -1,0 +1,151 @@
+graph TB
+    subgraph "ACTORS"
+        RU[Regular User<br/>Library Member]
+        LI[Librarian<br/>Library Staff]
+    end
+    
+    subgraph "USER USE CASES"
+        UC1[Register Account]
+        UC2[Login/Logout]
+        UC3[Browse Books]
+        UC4[Search Books]
+        UC5[Borrow Books]
+        UC6[Return Books]
+        UC7[View Cart]
+        UC8[Make Payment]
+        UC9[Read Digital Books]
+        UC10[Download Books]
+        UC11[View Notifications]
+        UC12[View Reading History]
+        UC13[Get Recommendations]
+    end
+    
+    subgraph "LIBRARIAN USE CASES"
+        UC14[Manage Books]
+        UC15[Add/Update Books]
+        UC16[View Analytics]
+        UC17[Manage Users]
+        UC18[Process QR Codes]
+        UC19[Send Notifications]
+        UC20[Manage Inventory]
+        UC21[Generate Reports]
+        UC22[Bulk Operations]
+        UC23[Manage Fines]
+        UC24[Scan User QR]
+        UC25[View System Status]
+    end
+    
+    subgraph "SYSTEM CORE"
+        SC1[User Management]
+        SC2[Book Management]
+        SC3[Digital Library]
+        SC4[Payment System]
+        SC5[QR Code System]
+        SC6[Notification System]
+        SC7[Analytics & AI]
+    end
+    
+    subgraph "EXTERNAL SERVICES"
+        ES1[SMS Providers]
+        ES2[Email Services]
+        ES3[Payment Gateways]
+        ES4[QR Code APIs]
+    end
+    
+    RU --> UC1
+    RU --> UC2
+    RU --> UC3
+    RU --> UC4
+    RU --> UC5
+    RU --> UC6
+    RU --> UC7
+    RU --> UC8
+    RU --> UC9
+    RU --> UC10
+    RU --> UC11
+    RU --> UC12
+    RU --> UC13
+    
+    LI --> UC14
+    LI --> UC15
+    LI --> UC16
+    LI --> UC17
+    LI --> UC18
+    LI --> UC19
+    LI --> UC20
+    LI --> UC21
+    LI --> UC22
+    LI --> UC23
+    LI --> UC24
+    LI --> UC25
+    
+    UC1 --> SC1
+    UC2 --> SC1
+    UC3 --> SC2
+    UC4 --> SC2
+    UC5 --> SC2
+    UC6 --> SC2
+    UC7 --> SC2
+    UC8 --> SC4
+    UC9 --> SC3
+    UC10 --> SC3
+    UC11 --> SC6
+    UC12 --> SC7
+    UC13 --> SC7
+    
+    UC14 --> SC2
+    UC15 --> SC2
+    UC16 --> SC7
+    UC17 --> SC1
+    UC18 --> SC5
+    UC19 --> SC6
+    UC20 --> SC2
+    UC21 --> SC7
+    UC22 --> SC2
+    UC23 --> SC4
+    UC24 --> SC5
+    UC25 --> SC7
+    
+    SC6 --> ES1
+    SC6 --> ES2
+    SC4 --> ES3
+    SC5 --> ES4
+    
+    style RU fill:#e3f2fd
+    style LI fill:#e8f5e8
+    style UC1 fill:#fff3e0
+    style UC2 fill:#fff3e0
+    style UC3 fill:#fff3e0
+    style UC4 fill:#fff3e0
+    style UC5 fill:#fff3e0
+    style UC6 fill:#fff3e0
+    style UC7 fill:#fff3e0
+    style UC8 fill:#fff3e0
+    style UC9 fill:#fff3e0
+    style UC10 fill:#fff3e0
+    style UC11 fill:#fff3e0
+    style UC12 fill:#fff3e0
+    style UC13 fill:#fff3e0
+    style UC14 fill:#f3e5f5
+    style UC15 fill:#f3e5f5
+    style UC16 fill:#f3e5f5
+    style UC17 fill:#f3e5f5
+    style UC18 fill:#f3e5f5
+    style UC19 fill:#f3e5f5
+    style UC20 fill:#f3e5f5
+    style UC21 fill:#f3e5f5
+    style UC22 fill:#f3e5f5
+    style UC23 fill:#f3e5f5
+    style UC24 fill:#f3e5f5
+    style UC25 fill:#f3e5f5
+    style SC1 fill:#e1f5fe
+    style SC2 fill:#e1f5fe
+    style SC3 fill:#e1f5fe
+    style SC4 fill:#e1f5fe
+    style SC5 fill:#e1f5fe
+    style SC6 fill:#e1f5fe
+    style SC7 fill:#e1f5fe
+    style ES1 fill:#fce4ec
+    style ES2 fill:#fce4ec
+    style ES3 fill:#fce4ec
+    style ES4 fill:#fce4ec

@@ -72,19 +72,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'library.wsgi.application'
 
-# settings.py
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'  # Use cached sessions
-# settings.py
+# Use DB-backed sessions by default for simplicity and reliability in small projects
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 # Set session expiration time (in seconds) to 1 hour
 SESSION_COOKIE_AGE = 3600
 
-# Set the session cookie to be accessible only via HTTPS (secure-only)
-SESSION_COOKIE_SECURE = True
+# In DEBUG mode allow non-HTTPS cookies; in production ensure SECURE flag is set
+SESSION_COOKIE_SECURE = not DEBUG
 
 # Set the session cookie to be HTTP only (not accessible via JavaScript)
 SESSION_COOKIE_HTTPONLY = True
 
 LOGOUT_REDIRECT_URL = 'home'
+LOGIN_URL = '/login'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -127,6 +127,40 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Email Configuration
+SITE_URL = 'http://127.0.0.1:8000'  # Update with your actual domain
+EMAIL_ENABLED = True  # Set to False to disable email notifications
+
+# Email Backend Configuration
+# For production - use SMTP backend
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Gmail SMTP server
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='arjun5shetty29@gmail.com')  # Admin Gmail address
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='your-app-password')  # Your Gmail app password
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='ReadOps Library <arjun5shetty29@gmail.com>')
+
+# For testing - emails will be printed to console (uncomment to use)
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# SMS Configuration
+SMS_ENABLED = True  # Set to False to disable SMS notifications
+SMS_PROVIDER = config('SMS_PROVIDER', default='mock')  # Options: 'mock', 'twilio', 'textlocal', 'fast2sms'
+
+# Twilio SMS Configuration
+TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID', default='')
+TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN', default='')
+TWILIO_FROM_NUMBER = config('TWILIO_FROM_NUMBER', default='')
+
+# TextLocal SMS Configuration
+TEXTLOCAL_API_KEY = config('TEXTLOCAL_API_KEY', default='')
+TEXTLOCAL_SENDER = config('TEXTLOCAL_SENDER', default='ReadOps')
+
+# Fast2SMS Configuration
+FAST2SMS_API_KEY = config('FAST2SMS_API_KEY', default='')
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
@@ -136,6 +170,12 @@ STATICFILES_DIRS = [
     # Add the absolute path to your app's 'static' directory.
     os.path.join(BASE_DIR, 'libapp', 'static'),
 ]
+
+# Media files (uploads)
+# Configure a proper media URL and root so the helper in urls.py
+# does not create a catch-all route that intercepts non-media paths.
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

@@ -1,51 +1,453 @@
 {% load static %}
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Glassmorphism Registration Page</title>
+  <title>Join ReadOps Library</title>
   <link rel="stylesheet" href="{% static  'css/Styles.css'%}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@1,300&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Lato:wght@700&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-  .log1 {
-    background-image: url("{% static 'Images/reg.jpg' %}");
-  }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    body::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("{% static 'Images/reg.jpg' %}") center/cover;
+        opacity: 0.2;
+        z-index: -1;
+    }
+
+    .floating-shapes {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: -1;
+    }
+
+    .shape {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        animation: float 8s ease-in-out infinite;
+    }
+
+    .shape:nth-child(1) {
+        width: 100px;
+        height: 100px;
+        top: 10%;
+        left: 5%;
+        animation-delay: 0s;
+    }
+
+    .shape:nth-child(2) {
+        width: 150px;
+        height: 150px;
+        top: 70%;
+        right: 5%;
+        animation-delay: 3s;
+    }
+
+    .shape:nth-child(3) {
+        width: 80px;
+        height: 80px;
+        bottom: 10%;
+        left: 15%;
+        animation-delay: 6s;
+    }
+
+    .shape:nth-child(4) {
+        width: 120px;
+        height: 120px;
+        top: 40%;
+        right: 20%;
+        animation-delay: 2s;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-30px) rotate(180deg); }
+    }
+
+    .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        z-index: 1000;
+        padding: 15px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .home-link {
+        color: white;
+        text-decoration: none;
+        font-size: 1.2em;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        font-weight: 600;
+    }
+
+    .home-link:hover {
+        color: #4fc3f7;
+        transform: translateX(5px);
+    }
+
+    .glass-container {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+        border-radius: 25px;
+        padding: 3rem;
+        width: 100%;
+        max-width: 550px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+        z-index: 1;
+    }
+
+    .logo-container {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .logo-container img {
+        max-height: 80px;
+        width: auto;
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+        transition: transform 0.3s ease;
+    }
+
+    .logo-container img:hover {
+        transform: scale(1.05);
+    }
+
+    .registration-form h2 {
+        text-align: center;
+        color: #fff;
+        margin-bottom: 2rem;
+        font-size: 2.2rem;
+        font-weight: 700;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        background: linear-gradient(45deg, #fff, #f0f8ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .formi {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .input-group {
+        position: relative;
+    }
+
+    .input-group i {
+        position: absolute;
+        left: 1.2rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1.1rem;
+        z-index: 2;
+    }
+
+    .input-group input {
+        width: 100%;
+        padding: 1rem 1.5rem 1rem 3rem;
+        border: none;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        color: white;
+        font-size: 1rem;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+    }
+
+    .input-group input::placeholder {
+        color: rgba(255, 255, 255, 0.8);
+        font-weight: 400;
+    }
+
+    .input-group input:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.3);
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .register-btn {
+        width: 100%;
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 50%, #0288d1 100%);
+        color: white;
+        border: none;
+        border-radius: 15px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 1.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .register-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .register-btn:hover::before {
+        left: 100%;
+    }
+
+    .register-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(79, 195, 247, 0.4);
+    }
+
+    .auth-links {
+        text-align: center;
+        margin-top: 2rem;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .auth-links p {
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+    }
+
+    .login-link {
+        color: #4fc3f7;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .login-link:hover {
+        color: #29b6f6;
+        transform: translateX(5px);
+    }
+
+    .login-link::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -2px;
+        left: 0;
+        background: linear-gradient(45deg, #4fc3f7, #29b6f6);
+        transition: width 0.3s ease;
+    }
+
+    .login-link:hover::after {
+        width: 100%;
+    }
+
+    .alert {
+        margin-bottom: 1.5rem;
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+    }
+
+    .alert-dismissible .btn-close {
+        padding: 1rem;
+    }
+
+    .terms-checkbox {
+        display: flex;
+        align-items: center;
+        margin: 1rem 0;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.9rem;
+    }
+
+    .terms-checkbox input {
+        margin-right: 0.5rem;
+        transform: scale(1.2);
+    }
+
+    .terms-checkbox a {
+        color: #4fc3f7;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .terms-checkbox a:hover {
+        color: #29b6f6;
+        text-decoration: underline;
+    }
+
+    @media (max-width: 576px) {
+        .glass-container {
+            padding: 2rem;
+            margin: 0 1rem;
+        }
+
+        .registration-form h2 {
+            font-size: 1.8rem;
+        }
+
+        .input-group input {
+            padding: 0.8rem 1.2rem 0.8rem 2.5rem;
+        }
+    }
 </style>
 </head>
 <body>
-    <div class="log1">
-  <div class="glass-container">
-    
-    {% if  messages %}
-                  {% for message in messages %}
-                    <div class="alert alert-warning" role="alert">
-                      {{message}}
-                      
-                    </div>
-                  
-                  {% endfor %}
-                {% endif %}
-      
-              {% block content %}
-              {% endblock %}
-    <form action="register" method="post">
-      <h2>Registration</h2>
-      {% csrf_token %}
-        <div class="formi">
-      <input type="text" placeholder="Name" name="username" required>
-      <input type="email" placeholder="Email" name="email" required>
-      <input type="tel" placeholder="Phone number" name="phone" required>
-      <input type="password" placeholder="Password" name="password" required>
-      <!-- <input type="password" placeholder="OTP" name="otp"> -->
+    <div class="floating-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
     </div>
-      <button type="submit">Register</button>
-    </form>
-  </div>
-</div>
 
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{% url 'home' %}" class="home-link">
+                <i class="fas fa-home"></i> Back to Home
+            </a>
+        </div>
+    </nav>
+
+    <div class="glass-container">
+        <div class="logo-container">
+            <a href="{% url 'home' %}">
+                <img src="{% static 'Images/logo-no-background.png' %}" alt="ReadOps">
+            </a>
+        </div>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <form action="{% url 'register' %}" method="post" class="registration-form">
+            <h2><i class="fas fa-user-plus"></i> Join ReadOps</h2>
+            {% csrf_token %}
+            <div class="formi">
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" placeholder="Choose a username" name="username" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" placeholder="Enter your email" name="email" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-phone"></i>
+                    <input type="tel" placeholder="Phone number" name="phone" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" placeholder="Create a password" name="password" required>
+                </div>
+            </div>
+            
+            <div class="terms-checkbox">
+                <input type="checkbox" id="terms" required>
+                <label for="terms">I agree to the <a href="#" onclick="alert('Terms and Conditions would be displayed here')">Terms and Conditions</a> and <a href="#" onclick="alert('Privacy Policy would be displayed here')">Privacy Policy</a></label>
+            </div>
+            
+            <button type="submit" class="register-btn">
+                <i class="fas fa-user-plus"></i> Create My Account
+            </button>
+            
+            <div class="auth-links">
+                <p><i class="fas fa-sign-in-alt"></i> Already have an account?</p>
+                <a href="{% url 'login' %}" class="login-link">
+                    <i class="fas fa-sign-in-alt"></i> Sign In Here
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Add interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="password"]');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'scale(1.02)';
+                    this.parentElement.style.boxShadow = '0 0 0 3px rgba(79, 195, 247, 0.3)';
+                });
+                input.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'scale(1)';
+                    this.parentElement.style.boxShadow = 'none';
+                });
+            });
+
+            // Password strength indicator
+            const passwordInput = document.querySelector('input[name="password"]');
+            if (passwordInput) {
+                passwordInput.addEventListener('input', function() {
+                    const strength = this.value.length;
+                    if (strength < 6) {
+                        this.style.borderColor = '#f44336';
+                    } else if (strength < 8) {
+                        this.style.borderColor = '#ff9800';
+                    } else {
+                        this.style.borderColor = '#4caf50';
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

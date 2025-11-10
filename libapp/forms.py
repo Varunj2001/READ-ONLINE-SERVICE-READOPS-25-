@@ -81,3 +81,13 @@ class RegistrationForm(forms.ModelForm):
 class LoginForm(forms.Form):
     username = forms.CharField()
     password = forms.CharField(widget=forms.PasswordInput)
+
+class UserUpdateForm(forms.ModelForm):
+    email = forms.EmailField(required=False)
+    username = forms.CharField(max_length=50, required=False)
+    phone = forms.CharField(required=False)
+    password = forms.CharField(widget=forms.PasswordInput, required=False)
+
+    class Meta:
+        model = CustomUser
+        fields = ("username", "email", "phone")

@@ -1,0 +1,287 @@
+{% extends 'libapp/base.html' %}
+{% block title %}My Notifications - ReadOps{% endblock %}
+{% block content %}
+{% load static %}
+
+<style>
+    .notifications-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .notifications-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 2rem;
+        text-align: center;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .notifications-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("{% static 'Images/Background.jpg' %}") center/cover;
+        opacity: 0.1;
+        z-index: 0;
+    }
+
+    .notifications-header-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .notifications-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .notifications-header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+
+    .notifications-grid {
+        display: grid;
+        gap: 1.5rem;
+    }
+
+    .notification-item {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+        border: 1px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+    .notification-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .notification-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .notification-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .notification-bima {
+        font-size: 1rem;
+        color: #667eea;
+        font-weight: 600;
+    }
+
+    .notification-status {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-confirmed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-rejected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-expired {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+
+    .notification-body {
+        padding: 1.5rem;
+    }
+
+    .notification-message {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+
+    .notification-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .notification-date {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .notification-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .action-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .view-btn {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .view-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #666;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #ddd;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state p {
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 768px) {
+        .notification-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .notification-meta {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+    }
+</style>
+
+<div class="notifications-container">
+    <div class="notifications-header">
+        <div class="notifications-header-content">
+            <h1><i class="fas fa-bell"></i> My Notifications</h1>
+            <p>Track your library transactions with BIMA IDs</p>
+        </div>
+    </div>
+
+    {% if notifications %}
+        <div class="notifications-grid">
+            {% for notification in notifications %}
+            <div class="notification-item">
+                <div class="notification-header">
+                    <div>
+                        <div class="notification-title">{{ notification.title }}</div>
+                        <div class="notification-bima">{{ notification.bima_id }}</div>
+                    </div>
+                    <div class="notification-status status-{{ notification.status|lower }}">
+                        {% if notification.status == 'PENDING' %}
+                            <i class="fas fa-clock"></i> Pending
+                        {% elif notification.status == 'CONFIRMED' %}
+                            <i class="fas fa-check-circle"></i> Confirmed
+                        {% elif notification.status == 'REJECTED' %}
+                            <i class="fas fa-times-circle"></i> Rejected
+                        {% elif notification.status == 'EXPIRED' %}
+                            <i class="fas fa-exclamation-triangle"></i> Expired
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="notification-body">
+                    <div class="notification-message">
+                        {{ notification.message }}
+                    </div>
+                    
+                    {% if notification.book_title %}
+                    <div style="background: #f8f9fa; padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <strong><i class="fas fa-book"></i> Book:</strong> {{ notification.book_title }}
+                        {% if notification.book_id %}
+                            <br><strong>Book ID:</strong> {{ notification.book_id }}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="notification-meta">
+                        <div class="notification-date">
+                            <i class="fas fa-calendar"></i>
+                            {{ notification.created_date|date:"M d, Y H:i" }}
+                        </div>
+                        
+                        <div class="notification-actions">
+                            <a href="{% url 'mobile_notification' notification.id %}" class="action-btn view-btn">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                        </div>
+                    </div>
+                    
+                    {% if notification.response_date %}
+                    <div style="background: #e8f5e8; padding: 0.75rem; border-radius: 8px; margin-top: 1rem; color: #2d5a2d; font-size: 0.9rem;">
+                        <i class="fas fa-reply"></i> Responded on {{ notification.response_date|date:"M d, Y H:i" }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-bell-slash"></i>
+            <h3>No Notifications Yet</h3>
+            <p>You haven't received any mobile notifications yet. Notifications will appear here when you borrow or return books.</p>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

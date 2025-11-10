@@ -1,0 +1,239 @@
+{% extends 'libapp/base.html' %}
+{% block title %}Smart Recommendations - ReadOps{% endblock %}
+{% block content %}
+{% load static %}
+
+<style>
+    .recommendations-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .recommendations-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 2rem;
+        text-align: center;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+    }
+
+    .recommendations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .recommendation-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+    .recommendation-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .recommendation-card h3 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .book-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .book-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        border: 1px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+    .book-card:hover {
+        background: #e9ecef;
+        transform: translateY(-2px);
+    }
+
+    .book-card h4 {
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .book-card p {
+        color: #666;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .book-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+        color: white;
+        text-decoration: none;
+    }
+
+    .ai-badge {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #666;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: #ddd;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="recommendations-container">
+    <div class="recommendations-header">
+        <h1><i class="fas fa-robot"></i> Smart Recommendations</h1>
+        <p>AI-powered book suggestions based on your reading preferences</p>
+    </div>
+
+    <div class="recommendations-grid">
+        <!-- Personalized Recommendations -->
+        <div class="recommendation-card">
+            <h3><i class="fas fa-user"></i> Personalized for You</h3>
+            <div class="ai-badge">AI Recommended</div>
+            
+            {% if recommendations %}
+                <div class="book-grid">
+                    {% for book in recommendations %}
+                    <div class="book-card">
+                        <h4>{{ book.title }}</h4>
+                        <p><strong>Author:</strong> {{ book.author }}</p>
+                        <p><strong>Subject:</strong> {{ book.subject }}</p>
+                        <p><strong>Available:</strong> {{ book.quantity }} copies</p>
+                        
+                        <div class="book-actions">
+                            <a href="{% url 'explore' %}?q={{ book.title }}" class="btn btn-primary">
+                                <i class="fas fa-search"></i> View Details
+                            </a>
+                            {% if book.quantity > 0 %}
+                            <a href="{% url 'add_to_cart' book.id %}" class="btn btn-secondary">
+                                <i class="fas fa-cart-plus"></i> Add to Cart
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-book-open"></i>
+                    <h3>No Recommendations Yet</h3>
+                    <p>Start borrowing books to get personalized recommendations!</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Trending Books -->
+        <div class="recommendation-card">
+            <h3><i class="fas fa-fire"></i> Trending Now</h3>
+            <div class="ai-badge">Popular</div>
+            
+            {% if trending_books %}
+                <div class="book-grid">
+                    {% for book in trending_books %}
+                    <div class="book-card">
+                        <h4>{{ book.title }}</h4>
+                        <p><strong>Author:</strong> {{ book.author }}</p>
+                        <p><strong>Subject:</strong> {{ book.subject }}</p>
+                        <p><strong>Available:</strong> {{ book.quantity }} copies</p>
+                        
+                        <div class="book-actions">
+                            <a href="{% url 'explore' %}?q={{ book.title }}" class="btn btn-primary">
+                                <i class="fas fa-search"></i> View Details
+                            </a>
+                            {% if book.quantity > 0 %}
+                            <a href="{% url 'add_to_cart' book.id %}" class="btn btn-secondary">
+                                <i class="fas fa-cart-plus"></i> Add to Cart
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-book"></i>
+                    <h3>No Trending Books</h3>
+                    <p>Check back later for trending books!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Reading Insights -->
+    <div class="recommendation-card" style="margin-top: 2rem;">
+        <h3><i class="fas fa-chart-pie"></i> Your Reading Insights</h3>
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-top: 1rem;">
+            <p><strong>💡 Tip:</strong> The more books you borrow and return, the better our AI can recommend books you'll love!</p>
+            <p><strong>📚 Explore:</strong> Try different subjects and authors to discover new reading preferences.</p>
+            <p><strong>⭐ Rate:</strong> Your borrowing history helps us understand your reading taste.</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

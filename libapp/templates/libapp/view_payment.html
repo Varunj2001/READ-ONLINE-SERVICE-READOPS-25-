@@ -1,0 +1,210 @@
+{% extends 'libapp/base.html' %}
+
+{% block content %}
+<style>
+    .payment-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+    }
+
+    .card-header {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h3 {
+        color: #2196F3;
+        font-size: 1.8rem;
+        margin: 0;
+    }
+
+    .payment-id {
+        background: rgba(33, 150, 243, 0.1);
+        color: #2196F3;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+
+    .details-section {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .details-section h4 {
+        color: #333;
+        margin-bottom: 1.5rem;
+        font-size: 1.2rem;
+    }
+
+    .details-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 0.8rem;
+    }
+
+    .details-table tr {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        transition: background 0.3s;
+    }
+
+    .details-table tr:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .details-table th,
+    .details-table td {
+        padding: 1rem;
+        border: none;
+    }
+
+    .details-table th {
+        color: #666;
+        font-weight: 500;
+        width: 40%;
+    }
+
+    .details-table td {
+        color: #333;
+        font-weight: 400;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.4rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        background: rgba(76, 175, 80, 0.1);
+        color: #4CAF50;
+    }
+
+    .success-alert {
+        background: rgba(76, 175, 80, 0.1);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-top: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #4CAF50;
+    }
+
+    .success-alert i {
+        font-size: 1.2rem;
+    }
+
+    .btn-action {
+        padding: 0.8rem 1.5rem;
+        border-radius: 25px;
+        border: none;
+        background: linear-gradient(45deg, #2196F3, #1976D2);
+        color: white;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+        color: white;
+    }
+
+    .action-buttons {
+        text-align: center;
+        margin-top: 2rem;
+    }
+
+    @media (max-width: 768px) {
+        .payment-container {
+            padding: 1rem;
+            margin: 1rem;
+        }
+
+        .glass-card {
+            padding: 1.5rem;
+        }
+
+        .details-table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+    }
+</style>
+
+<div class="payment-container">
+    <div class="glass-card">
+        <div class="card-header">
+            <h3>Payment Verification</h3>
+            <span class="payment-id">#{{ payment.id }}</span>
+        </div>
+        <div class="details-section">
+            <h4>Payment Details</h4>
+            <table class="details-table">
+                <tr>
+                    <th>Payment ID:</th>
+                    <td>{{ payment.id }}</td>
+                </tr>
+                <tr>
+                    <th>User:</th>
+                    <td>{{ payment.user.username }}</td>
+                </tr>
+                <tr>
+                    <th>Book:</th>
+                    <td>{{ payment.book_title }}</td>
+                </tr>
+                <tr>
+                    <th>Amount:</th>
+                    <td>₹{{ payment.amount }}</td>
+                </tr>
+                <tr>
+                    <th>Payment Type:</th>
+                    <td>{{ payment.get_payment_type_display }}</td>
+                </tr>
+                <tr>
+                    <th>Date:</th>
+                    <td>{{ payment.payment_date }}</td>
+                </tr>
+                <tr>
+                    <th>Status:</th>
+                    <td>
+                        <span class="status-badge">Verified</span>
+                    </td>
+                </tr>
+            </table>
+            <div class="success-alert">
+                <i class="fas fa-check-circle"></i>
+                This payment has been successfully processed and verified.
+            </div>
+        </div>
+        <div class="action-buttons">
+            <a href="{% url 'librarian_dashboard' %}" class="btn-action">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

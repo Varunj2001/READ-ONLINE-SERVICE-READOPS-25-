@@ -1,0 +1,86 @@
+graph TB
+    subgraph "CLIENT LAYER"
+        WC[Web Client<br/>Browser]
+        MC[Mobile Client<br/>Responsive Web]
+        AP[Admin Panel<br/>Librarian Interface]
+    end
+    
+    subgraph "PRESENTATION LAYER"
+        UD[User Dashboard]
+        LD[Librarian Dashboard]
+        DI[Digital Library Interface]
+        PI[Payment Interface]
+        AD[Analytics Dashboard]
+        QS[QR Scanner Interface]
+    end
+    
+    subgraph "APPLICATION LAYER"
+        VC[View Controllers<br/>views.py, digital_views.py<br/>qr_views.py, advanced_views.py]
+        SL[Services Layer<br/>email_service.py<br/>sms_service.py<br/>advanced_tools.py]
+        AS[Authentication & Security<br/>Custom User Model<br/>Role-based Access]
+        AA[Advanced Analytics<br/>AI Recommendations<br/>Smart Search]
+    end
+    
+    subgraph "DATA LAYER"
+        ML[Models Layer<br/>12 Data Models]
+        DB[(Database<br/>SQLite3/PostgreSQL)]
+        FS[File Storage<br/>Media Files]
+    end
+    
+    subgraph "EXTERNAL SERVICES"
+        PG[Payment Gateways<br/>UPI QR Codes]
+        SMS[SMS Services<br/>Fast2SMS, TextLocal]
+        ES[Email Services<br/>SMTP Backend]
+        QR[QR Code Generation<br/>qrcode library]
+        AE[Analytics Engine<br/>AI & ML Features]
+    end
+    
+    WC --> UD
+    MC --> DI
+    AP --> LD
+    
+    UD --> VC
+    LD --> VC
+    DI --> VC
+    PI --> VC
+    AD --> VC
+    QS --> VC
+    
+    VC --> SL
+    VC --> AS
+    VC --> AA
+    
+    SL --> ML
+    AS --> ML
+    AA --> ML
+    
+    ML --> DB
+    ML --> FS
+    
+    SL --> SMS
+    SL --> ES
+    VC --> PG
+    VC --> QR
+    AA --> AE
+    
+    style WC fill:#e1f5fe
+    style MC fill:#e1f5fe
+    style AP fill:#e1f5fe
+    style UD fill:#f3e5f5
+    style LD fill:#f3e5f5
+    style DI fill:#f3e5f5
+    style PI fill:#f3e5f5
+    style AD fill:#f3e5f5
+    style QS fill:#f3e5f5
+    style VC fill:#e8f5e8
+    style SL fill:#e8f5e8
+    style AS fill:#e8f5e8
+    style AA fill:#e8f5e8
+    style ML fill:#fff3e0
+    style DB fill:#fff3e0
+    style FS fill:#fff3e0
+    style PG fill:#fce4ec
+    style SMS fill:#fce4ec
+    style ES fill:#fce4ec
+    style QR fill:#fce4ec
+    style AE fill:#fce4ec

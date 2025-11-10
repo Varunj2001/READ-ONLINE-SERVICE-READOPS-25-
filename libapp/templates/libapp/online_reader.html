@@ -1,0 +1,504 @@
+{% extends 'libapp/base.html' %}
+{% block title %}{{ book.title }} - Online Reader{% endblock %}
+{% block content %}
+{% load static %}
+
+<style>
+    .reader-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0;
+    }
+
+    .reader-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem 2rem;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .reader-header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .book-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .reader-controls {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .access-info {
+        background: rgba(255,255,255,0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+    }
+
+    .reader-content {
+        background: white;
+        min-height: calc(100vh - 80px);
+        padding: 2rem;
+        line-height: 1.8;
+        font-size: 1.1rem;
+        color: #333;
+    }
+
+    .reader-content h1 {
+        color: #2c3e50;
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        text-align: center;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 1rem;
+    }
+
+    .reader-content h2 {
+        color: #667eea;
+        font-size: 2rem;
+        margin: 2rem 0 1rem 0;
+        border-left: 4px solid #667eea;
+        padding-left: 1rem;
+    }
+
+    .reader-content h3 {
+        color: #2c3e50;
+        font-size: 1.5rem;
+        margin: 1.5rem 0 0.5rem 0;
+    }
+
+    .reader-content p {
+        margin-bottom: 1.5rem;
+        text-align: justify;
+    }
+
+    .reader-content blockquote {
+        background: #f8f9fa;
+        border-left: 4px solid #667eea;
+        padding: 1rem 1.5rem;
+        margin: 1.5rem 0;
+        font-style: italic;
+        color: #666;
+    }
+
+    .reader-navigation {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        z-index: 1000;
+    }
+
+    .nav-btn {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        border: none;
+        background: #667eea;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nav-btn:hover {
+        background: #5a67d8;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .reader-toolbar {
+        position: fixed;
+        top: 50%;
+        left: 2rem;
+        transform: translateY(-50%);
+        background: white;
+        border-radius: 25px;
+        padding: 1rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        z-index: 1000;
+    }
+
+    .toolbar-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 2px solid #e9ecef;
+        background: white;
+        color: #667eea;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .toolbar-btn:hover {
+        border-color: #667eea;
+        background: #f0f4ff;
+    }
+
+    .toolbar-btn.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+
+    .bookmark-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin: 2rem 0;
+        border-left: 4px solid #28a745;
+    }
+
+    .bookmark-section h4 {
+        color: #28a745;
+        margin-bottom: 1rem;
+    }
+
+    .bookmark-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .bookmark-list li {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border: 1px solid #e9ecef;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .bookmark-list li:hover {
+        background: #f0f4ff;
+        border-color: #667eea;
+    }
+
+    .progress-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 4px;
+        background: #667eea;
+        z-index: 1001;
+        transition: width 0.3s ease;
+    }
+
+    .reading-stats {
+        position: fixed;
+        bottom: 2rem;
+        left: 2rem;
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    @media (max-width: 768px) {
+        .reader-header-content {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .reader-content {
+            padding: 1rem;
+            font-size: 1rem;
+        }
+        
+        .reader-toolbar {
+            display: none;
+        }
+        
+        .reader-navigation {
+            bottom: 1rem;
+            right: 1rem;
+        }
+        
+        .reading-stats {
+            bottom: 1rem;
+            left: 1rem;
+            font-size: 0.8rem;
+        }
+    }
+</style>
+
+<div class="reader-container">
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+    
+    <!-- Reader Header -->
+    <div class="reader-header">
+        <div class="reader-header-content">
+            <div>
+                <h1 class="book-title">{{ book.title }}</h1>
+                <p style="margin: 0; opacity: 0.9;">by {{ book.author }}</p>
+            </div>
+            <div class="reader-controls">
+                <div class="access-info">
+                    <i class="fas fa-clock"></i> Access until {{ user_access.access_end_date|date:"M d, Y" }}
+                </div>
+                <a href="{% url 'digital_library' %}" class="btn btn-secondary" style="color: white; text-decoration: none; padding: 0.5rem 1rem; border-radius: 6px; background: rgba(255,255,255,0.2);">
+                    <i class="fas fa-arrow-left"></i> Back to Library
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reader Content -->
+    <div class="reader-content" id="reader-content">
+        {{ content|safe }}
+    </div>
+
+    <!-- Reader Toolbar -->
+    <div class="reader-toolbar">
+        <button class="toolbar-btn" onclick="toggleFontSize('increase')" title="Increase Font Size">
+            <i class="fas fa-plus"></i>
+        </button>
+        <button class="toolbar-btn" onclick="toggleFontSize('decrease')" title="Decrease Font Size">
+            <i class="fas fa-minus"></i>
+        </button>
+        <button class="toolbar-btn" onclick="toggleTheme()" title="Toggle Theme">
+            <i class="fas fa-moon"></i>
+        </button>
+        <button class="toolbar-btn" onclick="addBookmark()" title="Add Bookmark">
+            <i class="fas fa-bookmark"></i>
+        </button>
+        <button class="toolbar-btn" onclick="toggleBookmarks()" title="Show Bookmarks">
+            <i class="fas fa-list"></i>
+        </button>
+    </div>
+
+    <!-- Reader Navigation -->
+    <div class="reader-navigation">
+        <button class="nav-btn" onclick="scrollToTop()" title="Scroll to Top">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        <button class="nav-btn" onclick="scrollToBottom()" title="Scroll to Bottom">
+            <i class="fas fa-arrow-down"></i>
+        </button>
+    </div>
+
+    <!-- Reading Stats -->
+    <div class="reading-stats">
+        <div><i class="fas fa-clock"></i> Reading Time: <span id="reading-time">0 min</span></div>
+        <div><i class="fas fa-bookmark"></i> Bookmarks: <span id="bookmark-count">0</span></div>
+    </div>
+</div>
+
+<!-- Bookmarks Panel -->
+<div id="bookmarks-panel" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 2000; max-width: 400px; width: 90%;">
+    <h3 style="color: #2c3e50; margin-bottom: 1rem;">Your Bookmarks</h3>
+    <div class="bookmark-section">
+        <ul class="bookmark-list" id="bookmark-list">
+            <!-- Bookmarks will be added here -->
+        </ul>
+    </div>
+    <button onclick="toggleBookmarks()" class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">Close</button>
+</div>
+
+<script>
+    let fontSize = 1.1;
+    let isDarkTheme = false;
+    let readingStartTime = Date.now();
+    let bookmarks = JSON.parse(localStorage.getItem('bookmarks_{{ book.id }}') || '[]');
+    
+    // Initialize reader
+    document.addEventListener('DOMContentLoaded', function() {
+        updateBookmarkCount();
+        startReadingTimer();
+        updateProgressBar();
+        
+        // Load saved settings
+        const savedFontSize = localStorage.getItem('fontSize_{{ book.id }}');
+        if (savedFontSize) {
+            fontSize = parseFloat(savedFontSize);
+            document.getElementById('reader-content').style.fontSize = fontSize + 'rem';
+        }
+        
+        const savedTheme = localStorage.getItem('theme_{{ book.id }}');
+        if (savedTheme === 'dark') {
+            toggleTheme();
+        }
+    });
+    
+    function toggleFontSize(action) {
+        if (action === 'increase' && fontSize < 2) {
+            fontSize += 0.1;
+        } else if (action === 'decrease' && fontSize > 0.8) {
+            fontSize -= 0.1;
+        }
+        
+        document.getElementById('reader-content').style.fontSize = fontSize + 'rem';
+        localStorage.setItem('fontSize_{{ book.id }}', fontSize);
+    }
+    
+    function toggleTheme() {
+        isDarkTheme = !isDarkTheme;
+        const content = document.getElementById('reader-content');
+        
+        if (isDarkTheme) {
+            content.style.background = '#1a1a1a';
+            content.style.color = '#e0e0e0';
+        } else {
+            content.style.background = 'white';
+            content.style.color = '#333';
+        }
+        
+        localStorage.setItem('theme_{{ book.id }}', isDarkTheme ? 'dark' : 'light');
+    }
+    
+    function addBookmark() {
+        const scrollPosition = window.pageYOffset;
+        const bookmark = {
+            id: Date.now(),
+            position: scrollPosition,
+            text: getCurrentSectionText(),
+            timestamp: new Date().toLocaleTimeString()
+        };
+        
+        bookmarks.push(bookmark);
+        localStorage.setItem('bookmarks_{{ book.id }}', JSON.stringify(bookmarks));
+        updateBookmarkCount();
+        
+        // Show notification
+        showNotification('Bookmark added!');
+    }
+    
+    function getCurrentSectionText() {
+        const elements = document.querySelectorAll('h1, h2, h3, p');
+        for (let element of elements) {
+            const rect = element.getBoundingClientRect();
+            if (rect.top <= window.innerHeight / 2 && rect.bottom >= window.innerHeight / 2) {
+                return element.textContent.substring(0, 50) + '...';
+            }
+        }
+        return 'Bookmark at position ' + Math.round(window.pageYOffset);
+    }
+    
+    function toggleBookmarks() {
+        const panel = document.getElementById('bookmarks-panel');
+        const list = document.getElementById('bookmark-list');
+        
+        if (panel.style.display === 'none') {
+            panel.style.display = 'block';
+            updateBookmarkList();
+        } else {
+            panel.style.display = 'none';
+        }
+    }
+    
+    function updateBookmarkList() {
+        const list = document.getElementById('bookmark-list');
+        list.innerHTML = '';
+        
+        bookmarks.forEach(bookmark => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <strong>${bookmark.text}</strong><br>
+                <small>Added at ${bookmark.timestamp}</small>
+            `;
+            li.onclick = () => {
+                window.scrollTo(0, bookmark.position);
+                toggleBookmarks();
+            };
+            list.appendChild(li);
+        });
+    }
+    
+    function updateBookmarkCount() {
+        document.getElementById('bookmark-count').textContent = bookmarks.length;
+    }
+    
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    function scrollToBottom() {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+    
+    function updateProgressBar() {
+        const scrollTop = window.pageYOffset;
+        const docHeight = document.body.scrollHeight - window.innerHeight;
+        const scrollPercent = (scrollTop / docHeight) * 100;
+        document.getElementById('progress-bar').style.width = scrollPercent + '%';
+    }
+    
+    function startReadingTimer() {
+        setInterval(() => {
+            const elapsed = Math.floor((Date.now() - readingStartTime) / 60000);
+            document.getElementById('reading-time').textContent = elapsed + ' min';
+        }, 60000);
+    }
+    
+    function showNotification(message) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            z-index: 3000;
+            animation: slideIn 0.3s ease;
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+    
+    // Update progress bar on scroll
+    window.addEventListener('scroll', updateProgressBar);
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey || e.metaKey) {
+            switch(e.key) {
+                case '=':
+                case '+':
+                    e.preventDefault();
+                    toggleFontSize('increase');
+                    break;
+                case '-':
+                    e.preventDefault();
+                    toggleFontSize('decrease');
+                    break;
+                case 'b':
+                    e.preventDefault();
+                    addBookmark();
+                    break;
+            }
+        }
+    });
+</script>
+
+{% endblock %}

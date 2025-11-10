@@ -1,0 +1,304 @@
+{% extends 'libapp/base.html' %}
+{% block title %}Add Digital Book - ReadOps{% endblock %}
+{% block content %}
+{% load static %}
+
+<style>
+    .add-book-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .add-book-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 2rem;
+        text-align: center;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+    }
+
+    .add-book-form {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+        width: auto;
+        margin: 0;
+    }
+
+    .file-upload {
+        border: 2px dashed #e9ecef;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .file-upload:hover {
+        border-color: #667eea;
+        background: #f8f9ff;
+    }
+
+    .file-upload input[type="file"] {
+        display: none;
+    }
+
+    .file-upload-label {
+        cursor: pointer;
+        color: #667eea;
+        font-weight: 600;
+    }
+
+    .btn {
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+        color: white;
+        text-decoration: none;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="add-book-container">
+    <div class="add-book-header">
+        <h1><i class="fas fa-plus-circle"></i> Add Digital Book</h1>
+        <p>Add new digital books to the online library</p>
+    </div>
+
+    <div class="add-book-form">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="title">Book Title *</label>
+                <input type="text" name="title" id="title" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="author">Author *</label>
+                    <input type="text" name="author" id="author" required>
+                </div>
+                <div class="form-group">
+                    <label for="book_type">Book Type *</label>
+                    <select name="book_type" id="book_type" required>
+                        <option value="">Select Type</option>
+                        {% for type_code, type_name in book_types %}
+                        <option value="{{ type_code }}">{{ type_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="category">Category *</label>
+                <input type="text" name="category" id="category" placeholder="e.g., Hindu Scriptures, Programming, Literature" required>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description *</label>
+                <textarea name="description" id="description" placeholder="Describe the book content, its significance, and what readers can expect..." required></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="online_reading_price">Online Reading Price (₹)</label>
+                    <input type="number" name="online_reading_price" id="online_reading_price" value="50" min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="download_price">Download Price (₹)</label>
+                    <input type="number" name="download_price" id="download_price" value="100" min="0" step="0.01">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" name="is_free" id="is_free">
+                    <label for="is_free">Make this book free</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Cover Image</label>
+                <div class="file-upload">
+                    <input type="file" name="cover_image" id="cover_image" accept="image/*">
+                    <label for="cover_image" class="file-upload-label">
+                        <i class="fas fa-image"></i> Choose Cover Image
+                    </label>
+                    <p style="margin: 0.5rem 0 0 0; color: #666; font-size: 0.9rem;">Recommended: 300x400px or similar aspect ratio</p>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>PDF File</label>
+                    <div class="file-upload">
+                        <input type="file" name="pdf_file" id="pdf_file" accept=".pdf">
+                        <label for="pdf_file" class="file-upload-label">
+                            <i class="fas fa-file-pdf"></i> Choose PDF File
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Word Document</label>
+                    <div class="file-upload">
+                        <input type="file" name="word_file" id="word_file" accept=".doc,.docx">
+                        <label for="word_file" class="file-upload-label">
+                            <i class="fas fa-file-word"></i> Choose Word File
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Digital Book
+                </button>
+                <a href="{% url 'digital_library' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Library
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Handle free book checkbox
+    document.getElementById('is_free').addEventListener('change', function() {
+        const onlinePrice = document.getElementById('online_reading_price');
+        const downloadPrice = document.getElementById('download_price');
+        
+        if (this.checked) {
+            onlinePrice.value = '0';
+            downloadPrice.value = '0';
+            onlinePrice.disabled = true;
+            downloadPrice.disabled = true;
+        } else {
+            onlinePrice.disabled = false;
+            downloadPrice.disabled = false;
+            onlinePrice.value = '50';
+            downloadPrice.value = '100';
+        }
+    });
+
+    // Handle file upload labels
+    document.getElementById('cover_image').addEventListener('change', function() {
+        const label = this.nextElementSibling;
+        if (this.files.length > 0) {
+            label.innerHTML = '<i class="fas fa-check"></i> ' + this.files[0].name;
+            label.style.color = '#28a745';
+        }
+    });
+
+    document.getElementById('pdf_file').addEventListener('change', function() {
+        const label = this.nextElementSibling;
+        if (this.files.length > 0) {
+            label.innerHTML = '<i class="fas fa-check"></i> ' + this.files[0].name;
+            label.style.color = '#28a745';
+        }
+    });
+
+    document.getElementById('word_file').addEventListener('change', function() {
+        const label = this.nextElementSibling;
+        if (this.files.length > 0) {
+            label.innerHTML = '<i class="fas fa-check"></i> ' + this.files[0].name;
+            label.style.color = '#28a745';
+        }
+    });
+</script>
+
+{% endblock %}

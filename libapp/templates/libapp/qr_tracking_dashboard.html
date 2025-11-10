@@ -1,0 +1,596 @@
+{% extends 'libapp/base.html' %}
+{% load static %}
+{% block title %}QR Tracking Dashboard - ReadOps Library{% endblock %}
+
+{% block content %}
+<style>
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+
+    .dashboard-header {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .dashboard-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        text-align: center;
+        border: 1px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    }
+
+    .stat-icon {
+        font-size: 2.5rem;
+        color: #667eea;
+        margin-bottom: 1rem;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .filters-section {
+        background: #f8f9fa;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+    }
+
+    .filters-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #218838;
+        transform: translateY(-2px);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-info {
+        background: #17a2b8;
+        color: white;
+    }
+
+    .btn-info:hover {
+        background: #138496;
+        transform: translateY(-2px);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+        color: white;
+        text-decoration: none;
+    }
+
+    .export-section {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid #e9ecef;
+        text-align: center;
+    }
+
+    .export-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .scans-table {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        border: 1px solid #e9ecef;
+        overflow-x: auto;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    .table th,
+    .table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #333;
+        position: sticky;
+        top: 0;
+    }
+
+    .table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-success {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-warning {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-danger {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-info {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+    }
+
+    .pagination a,
+    .pagination span {
+        padding: 0.5rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        text-decoration: none;
+        color: #333;
+        transition: all 0.3s ease;
+    }
+
+    .pagination a:hover {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+
+    .pagination .current {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+
+    .recent-scans {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-top: 2rem;
+        border: 1px solid #e9ecef;
+    }
+
+    .scan-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .scan-item:hover {
+        background: #f8f9fa;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .scan-info-left {
+        flex: 1;
+    }
+
+    .scan-user {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.25rem;
+    }
+
+    .scan-details {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .scan-time {
+        color: #666;
+        font-size: 0.9rem;
+        text-align: right;
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 3rem;
+        color: #666;
+    }
+
+    .no-data i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-container {
+            margin: 1rem;
+            padding: 1rem;
+        }
+
+        .dashboard-header h1 {
+            font-size: 2rem;
+        }
+
+        .filters-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .export-buttons {
+            flex-direction: column;
+        }
+
+        .table {
+            font-size: 0.9rem;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.5rem;
+        }
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1><i class="fas fa-chart-line"></i> QR Tracking Dashboard</h1>
+        <p>Monitor and track all QR code scans across the library system</p>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-qrcode"></i>
+            </div>
+            <div class="stat-number">{{ total_scans }}</div>
+            <div class="stat-label">Total Scans</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <div class="stat-number">{{ today_scans }}</div>
+            <div class="stat-label">Today's Scans</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-number">{{ unique_users }}</div>
+            <div class="stat-label">Unique Users</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <div class="stat-number">{{ scan_types_stats.VERIFICATION|default:0 }}</div>
+            <div class="stat-label">Verifications</div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-section">
+        <h3><i class="fas fa-filter"></i> Filter Scans</h3>
+        <form method="GET" class="filters-form">
+            <div class="filters-grid">
+                <div class="form-group">
+                    <label for="date_from">From Date:</label>
+                    <input type="date" id="date_from" name="date_from" value="{{ date_from }}">
+                </div>
+                <div class="form-group">
+                    <label for="date_to">To Date:</label>
+                    <input type="date" id="date_to" name="date_to" value="{{ date_to }}">
+                </div>
+                <div class="form-group">
+                    <label for="user_search">Search User:</label>
+                    <input type="text" id="user_search" name="user_search" value="{{ user_search }}" placeholder="Username, email, or name">
+                </div>
+                <div class="form-group">
+                    <label for="scan_type">Scan Type:</label>
+                    <select id="scan_type" name="scan_type">
+                        <option value="">All Types</option>
+                        {% for type_code, type_name in scan_type_choices %}
+                            <option value="{{ type_code }}" {% if scan_type_filter == type_code %}selected{% endif %}>
+                                {{ type_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+                <a href="{% url 'qr_tracking_dashboard' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Clear Filters
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Export Section -->
+    <div class="export-section">
+        <h3><i class="fas fa-download"></i> Export Data</h3>
+        <p>Export filtered scan data in your preferred format</p>
+        <div class="export-buttons">
+            <a href="?format=csv{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if user_search %}&user_search={{ user_search }}{% endif %}{% if scan_type_filter %}&scan_type={{ scan_type_filter }}{% endif %}" class="btn btn-success">
+                <i class="fas fa-file-csv"></i> Export CSV
+            </a>
+            <a href="?format=pdf{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if user_search %}&user_search={{ user_search }}{% endif %}{% if scan_type_filter %}&scan_type={{ scan_type_filter }}{% endif %}" class="btn btn-info">
+                <i class="fas fa-file-pdf"></i> Export PDF
+            </a>
+        </div>
+    </div>
+
+    <!-- Scans Table -->
+    <div class="scans-table">
+        <h3><i class="fas fa-table"></i> Scan Records</h3>
+        {% if page_obj %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Scanned By</th>
+                        <th>Type</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Location</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for scan in page_obj %}
+                    <tr>
+                        <td>{{ scan.id }}</td>
+                        <td>
+                            <strong>{{ scan.scanned_user.username }}</strong><br>
+                            <small>{{ scan.scanned_user.first_name }} {{ scan.scanned_user.last_name }}</small>
+                        </td>
+                        <td>{{ scan.scanned_user.email }}</td>
+                        <td>{{ scan.scanned_by.username }}</td>
+                        <td>
+                            <span class="status-badge 
+                                {% if scan.scan_type == 'LOGIN' %}status-success
+                                {% elif scan.scan_type == 'LOGOUT' %}status-warning
+                                {% elif scan.scan_type == 'VERIFICATION' %}status-info
+                                {% else %}status-secondary{% endif %}">
+                                {{ scan.get_scan_type_display }}
+                            </span>
+                        </td>
+                        <td>{{ scan.scan_date }}</td>
+                        <td>{{ scan.scan_time }}</td>
+                        <td>{{ scan.location|default:"N/A" }}</td>
+                        <td>
+                            <a href="{% url 'user_scan_history' scan.scanned_user.id %}" class="btn btn-sm btn-info">
+                                <i class="fas fa-history"></i> History
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if user_search %}&user_search={{ user_search }}{% endif %}{% if scan_type_filter %}&scan_type={{ scan_type_filter }}{% endif %}">&laquo; First</a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if user_search %}&user_search={{ user_search }}{% endif %}{% if scan_type_filter %}&scan_type={{ scan_type_filter }}{% endif %}">Previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if user_search %}&user_search={{ user_search }}{% endif %}{% if scan_type_filter %}&scan_type={{ scan_type_filter }}{% endif %}">Next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if user_search %}&user_search={{ user_search }}{% endif %}{% if scan_type_filter %}&scan_type={{ scan_type_filter }}{% endif %}">Last &raquo;</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="no-data">
+                <i class="fas fa-search"></i>
+                <h3>No scans found</h3>
+                <p>Try adjusting your filters or check back later for new scan data.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Scans -->
+    {% if recent_scans %}
+    <div class="recent-scans">
+        <h3><i class="fas fa-clock"></i> Recent Activity</h3>
+        {% for scan in recent_scans %}
+        <div class="scan-item">
+            <div class="scan-info-left">
+                <div class="scan-user">{{ scan.scanned_user.username }}</div>
+                <div class="scan-details">
+                    {{ scan.get_scan_type_display }} by {{ scan.scanned_by.username }}
+                    {% if scan.location %} • {{ scan.location }}{% endif %}
+                </div>
+            </div>
+            <div class="scan-time">
+                {{ scan.scan_timestamp|date:"M d, Y" }}<br>
+                {{ scan.scan_timestamp|time:"H:i" }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Auto-refresh every 30 seconds
+setInterval(function() {
+    // Only refresh if no filters are applied and user is on first page
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has('date_from') && !urlParams.has('date_to') && 
+        !urlParams.has('user_search') && !urlParams.has('scan_type') && 
+        (!urlParams.has('page') || urlParams.get('page') === '1')) {
+        location.reload();
+    }
+}, 30000);
+
+// Add loading state to export buttons
+document.querySelectorAll('.export-buttons a').forEach(button => {
+    button.addEventListener('click', function() {
+        const originalText = this.innerHTML;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+        this.style.pointerEvents = 'none';
+        
+        // Reset after 3 seconds
+        setTimeout(() => {
+            this.innerHTML = originalText;
+            this.style.pointerEvents = 'auto';
+        }, 3000);
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,601 @@
+{% extends 'libapp/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .payment-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 2rem;
+    }
+
+    .payment-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 2rem;
+        text-align: center;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .payment-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("{% static 'Images/Background.jpg' %}") center/cover;
+        opacity: 0.1;
+        z-index: 0;
+    }
+
+    .payment-hero-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .payment-hero h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .payment-hero p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .card-header {
+        border-bottom: 2px solid #e9ecef;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+    }
+
+    .card-header h3 {
+        color: #2c3e50;
+        font-size: 1.8rem;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .fine-details {
+        background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border-left: 5px solid #ffc107;
+    }
+
+    .fine-details h4 {
+        color: #856404;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .fine-details p {
+        margin-bottom: 0.8rem;
+        color: #6c757d;
+        font-size: 1.1rem;
+    }
+
+    .fine-details strong {
+        color: #495057;
+        margin-right: 0.5rem;
+    }
+
+    .lost-book-details {
+        background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border-left: 5px solid #dc3545;
+    }
+
+    .lost-book-details h4 {
+        color: #721c24;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .payment-methods {
+        margin: 2rem 0;
+    }
+
+    .payment-methods h4 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .payment-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .payment-option {
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .payment-option:hover {
+        border-color: #667eea;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .payment-option.selected {
+        border-color: #667eea;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .payment-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+
+    .payment-option-content {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .payment-icon {
+        font-size: 2rem;
+        color: #667eea;
+    }
+
+    .payment-option.selected .payment-icon {
+        color: white;
+    }
+
+    .payment-option-details h5 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .payment-option-details p {
+        margin: 0;
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+
+    .net-banking-details {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-top: 1.5rem;
+        display: none;
+    }
+
+    .net-banking-details.show {
+        display: block;
+        animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .bank-selection {
+        margin-bottom: 1.5rem;
+    }
+
+    .bank-selection label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .bank-selection select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+    }
+
+    .bank-selection select:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .form-check {
+        margin: 1.5rem 0;
+    }
+
+    .form-check-input {
+        width: 1.2rem;
+        height: 1.2rem;
+        margin-right: 0.8rem;
+    }
+
+    .form-check-label {
+        color: #555;
+        font-size: 1rem;
+    }
+
+    .btn-pay {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        border: none;
+        border-radius: 25px;
+        color: white;
+        padding: 1rem 2.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+    .btn-pay::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-pay:hover::before {
+        left: 100%;
+    }
+
+    .btn-pay:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+    }
+
+    .btn-pay:active {
+        transform: translateY(-1px);
+    }
+
+    .security-badges {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .security-badge {
+        background: #e8f5e8;
+        color: #2d5a2d;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .payment-container {
+            padding: 1rem;
+            margin: 1rem;
+        }
+
+        .glass-card {
+            padding: 1.5rem;
+        }
+
+        .payment-options {
+            grid-template-columns: 1fr;
+        }
+
+        .payment-hero h1 {
+            font-size: 2rem;
+        }
+    }
+</style>
+
+<div class="payment-container">
+    <!-- Payment Hero Section -->
+    <div class="payment-hero">
+        <div class="payment-hero-content">
+            <h1><i class="fas fa-credit-card"></i> Secure Payment</h1>
+            <p>Complete your payment using our secure payment gateway</p>
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <div class="card-header">
+            <h3><i class="fas fa-receipt"></i> Payment Details</h3>
+        </div>
+        
+        {% if fine %}
+        <div class="fine-details">
+            <h4><i class="fas fa-exclamation-triangle"></i> Fine Details</h4>
+            <p><strong>Book:</strong> {{ fine.book_title }}</p>
+            <p><strong>Due Date:</strong> {{ fine.due_date }}</p>
+            <p><strong>Days Overdue:</strong> {{ fine.days_overdue }}</p>
+            <p><strong>Fine Amount:</strong> ₹{{ fine.amount }}</p>
+        </div>
+        {% elif lost_book %}
+        <div class="lost-book-details">
+            <h4><i class="fas fa-book-dead"></i> Lost Book Payment</h4>
+            <p><strong>Book:</strong> {{ book.title }}</p>
+            <p><strong>Amount:</strong> ₹{{ amount }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Payment Methods Section -->
+        <div class="payment-methods">
+            <h4><i class="fas fa-credit-card"></i> Choose Payment Method</h4>
+            
+            <div class="payment-options">
+                <!-- Credit/Debit Card -->
+                <label class="payment-option" for="payment_card">
+                    <input type="radio" name="payment_method" value="card" id="payment_card" checked>
+                    <div class="payment-option-content">
+                        <div class="payment-icon">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div class="payment-option-details">
+                            <h5>Credit/Debit Card</h5>
+                            <p>Visa, Mastercard, American Express</p>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Net Banking -->
+                <label class="payment-option" for="payment_netbanking">
+                    <input type="radio" name="payment_method" value="netbanking" id="payment_netbanking">
+                    <div class="payment-option-content">
+                        <div class="payment-icon">
+                            <i class="fas fa-university"></i>
+                        </div>
+                        <div class="payment-option-details">
+                            <h5>Net Banking</h5>
+                            <p>Direct bank transfer</p>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- UPI -->
+                <label class="payment-option" for="payment_upi">
+                    <input type="radio" name="payment_method" value="upi" id="payment_upi">
+                    <div class="payment-option-content">
+                        <div class="payment-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <div class="payment-option-details">
+                            <h5>UPI Payment</h5>
+                            <p>Google Pay, PhonePe, Paytm</p>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Digital Wallet -->
+                <label class="payment-option" for="payment_wallet">
+                    <input type="radio" name="payment_method" value="wallet" id="payment_wallet">
+                    <div class="payment-option-content">
+                        <div class="payment-icon">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="payment-option-details">
+                            <h5>Digital Wallet</h5>
+                            <p>Paytm, PhonePe, Google Pay</p>
+                        </div>
+                    </div>
+                </label>
+            </div>
+
+            <!-- Net Banking Details -->
+            <div class="net-banking-details" id="netBankingDetails">
+                <h5><i class="fas fa-university"></i> Select Your Bank</h5>
+                <div class="bank-selection">
+                    <label for="bank_select">Choose your bank:</label>
+                    <select id="bank_select" name="bank_name">
+                        <option value="">Select Bank</option>
+                        <option value="sbi">State Bank of India</option>
+                        <option value="hdfc">HDFC Bank</option>
+                        <option value="icici">ICICI Bank</option>
+                        <option value="axis">Axis Bank</option>
+                        <option value="kotak">Kotak Mahindra Bank</option>
+                        <option value="pnb">Punjab National Bank</option>
+                        <option value="bob">Bank of Baroda</option>
+                        <option value="canara">Canara Bank</option>
+                        <option value="union">Union Bank of India</option>
+                        <option value="indian">Indian Bank</option>
+                        <option value="central">Central Bank of India</option>
+                        <option value="bank_of_india">Bank of India</option>
+                        <option value="yes_bank">YES Bank</option>
+                        <option value="federal">Federal Bank</option>
+                        <option value="south_indian">South Indian Bank</option>
+                    </select>
+                </div>
+                <div style="background: #e3f2fd; padding: 1rem; border-radius: 10px; margin-top: 1rem;">
+                    <p style="margin: 0; color: #1976d2; font-size: 0.9rem;">
+                        <i class="fas fa-info-circle"></i> 
+                        You will be redirected to your bank's secure website to complete the payment.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Forms -->
+        {% if fine %}
+        <form method="post" action="{% url 'pay_fine' %}" id="paymentForm">
+            {% csrf_token %}
+            <input type="hidden" name="fine_id" value="{{ fine.id }}">
+            <input type="hidden" name="payment_method" id="selectedPaymentMethod" value="card">
+            <input type="hidden" name="bank_name" id="selectedBank" value="">
+            
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="confirm_payment" id="confirm_payment" required>
+                <label class="form-check-label" for="confirm_payment">
+                    I confirm that I want to pay this fine using the selected payment method
+                </label>
+            </div>
+            <button type="submit" class="btn-pay" id="payButton">
+                <i class="fas fa-lock"></i> Pay ₹{{ fine.amount }}
+            </button>
+        </form>
+        {% elif lost_book %}
+        <form method="post" action="{% url 'pay_lost_book' %}" id="paymentForm">
+            {% csrf_token %}
+            <input type="hidden" name="book_id" value="{{ book.id }}">
+            <input type="hidden" name="amount" value="{{ amount }}">
+            <input type="hidden" name="payment_method" id="selectedPaymentMethod" value="card">
+            <input type="hidden" name="bank_name" id="selectedBank" value="">
+            
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="confirm_payment" id="confirm_payment" required>
+                <label class="form-check-label" for="confirm_payment">
+                    I confirm that I want to pay for this lost book using the selected payment method
+                </label>
+            </div>
+            <button type="submit" class="btn-pay" id="payButton">
+                <i class="fas fa-lock"></i> Pay ₹{{ amount }}
+            </button>
+        </form>
+        {% endif %}
+
+        <!-- Security Badges -->
+        <div class="security-badges">
+            <div class="security-badge">
+                <i class="fas fa-shield-alt"></i> SSL Secured
+            </div>
+            <div class="security-badge">
+                <i class="fas fa-lock"></i> 256-bit Encryption
+            </div>
+            <div class="security-badge">
+                <i class="fas fa-check-circle"></i> PCI Compliant
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const paymentOptions = document.querySelectorAll('input[name="payment_method"]');
+    const netBankingDetails = document.getElementById('netBankingDetails');
+    const selectedPaymentMethod = document.getElementById('selectedPaymentMethod');
+    const selectedBank = document.getElementById('selectedBank');
+    const bankSelect = document.getElementById('bank_select');
+    const payButton = document.getElementById('payButton');
+
+    // Handle payment method selection
+    paymentOptions.forEach(option => {
+        option.addEventListener('change', function() {
+            // Remove selected class from all options
+            document.querySelectorAll('.payment-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Add selected class to current option
+            this.closest('.payment-option').classList.add('selected');
+            
+            // Update hidden input
+            selectedPaymentMethod.value = this.value;
+            
+            // Show/hide net banking details
+            if (this.value === 'netbanking') {
+                netBankingDetails.classList.add('show');
+                selectedBank.value = bankSelect.value;
+            } else {
+                netBankingDetails.classList.remove('show');
+                selectedBank.value = '';
+            }
+            
+            // Update button text
+            updatePayButton();
+        });
+    });
+
+    // Handle bank selection
+    bankSelect.addEventListener('change', function() {
+        selectedBank.value = this.value;
+    });
+
+    // Update pay button text based on selected method
+    function updatePayButton() {
+        const selectedMethod = document.querySelector('input[name="payment_method"]:checked').value;
+        const amount = '{{ fine.amount|default:amount }}';
+        
+        switch(selectedMethod) {
+            case 'card':
+                payButton.innerHTML = '<i class="fas fa-credit-card"></i> Pay ₹' + amount + ' with Card';
+                break;
+            case 'netbanking':
+                payButton.innerHTML = '<i class="fas fa-university"></i> Pay ₹' + amount + ' via Net Banking';
+                break;
+            case 'upi':
+                payButton.innerHTML = '<i class="fas fa-mobile-alt"></i> Pay ₹' + amount + ' via UPI';
+                break;
+            case 'wallet':
+                payButton.innerHTML = '<i class="fas fa-wallet"></i> Pay ₹' + amount + ' via Wallet';
+                break;
+        }
+    }
+
+    // Form validation
+    document.getElementById('paymentForm').addEventListener('submit', function(e) {
+        const selectedMethod = document.querySelector('input[name="payment_method"]:checked').value;
+        
+        if (selectedMethod === 'netbanking' && !bankSelect.value) {
+            e.preventDefault();
+            alert('Please select a bank for net banking payment.');
+            return false;
+        }
+        
+        // Show loading state
+        payButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        payButton.disabled = true;
+    });
+
+    // Initialize with card selected
+    document.getElementById('payment_card').closest('.payment-option').classList.add('selected');
+    updatePayButton();
+});
+</script>
+{% endblock %}

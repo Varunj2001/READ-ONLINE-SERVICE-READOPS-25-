@@ -1,0 +1,57 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block content_title %}
+    <h1>Fine Management Dashboard</h1>
+{% endblock %}
+
+{% block content %}
+{% if fine_stats %}
+<div class="module filtered" id="changelist">
+    <div class="results">
+        <div style="background: #f8f9fa; padding: 20px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #dee2e6;">
+            <h2 style="margin-top: 0; color: #495057;">📊 Fine Statistics</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #007bff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div style="font-size: 24px; font-weight: bold; color: #007bff;">₹{{ fine_stats.total_fines|floatformat:2 }}</div>
+                    <div style="color: #6c757d; font-size: 14px;">Total Fines</div>
+                </div>
+                <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #ffc107; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div style="font-size: 24px; font-weight: bold; color: #ffc107;">₹{{ fine_stats.pending_fines|floatformat:2 }}</div>
+                    <div style="color: #6c757d; font-size: 14px;">Pending Fines</div>
+                </div>
+                <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #28a745; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div style="font-size: 24px; font-weight: bold; color: #28a745;">₹{{ fine_stats.paid_fines|floatformat:2 }}</div>
+                    <div style="color: #6c757d; font-size: 14px;">Paid Fines</div>
+                </div>
+                <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #dc3545; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div style="font-size: 24px; font-weight: bold; color: #dc3545;">₹{{ fine_stats.cancelled_fines|floatformat:2 }}</div>
+                    <div style="color: #6c757d; font-size: 14px;">Cancelled Fines</div>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px;">
+                <div style="background: white; padding: 12px; border-radius: 6px; text-align: center;">
+                    <div style="font-size: 20px; font-weight: bold; color: #495057;">{{ fine_stats.total_count }}</div>
+                    <div style="color: #6c757d; font-size: 13px;">Total Records</div>
+                </div>
+                <div style="background: white; padding: 12px; border-radius: 6px; text-align: center;">
+                    <div style="font-size: 20px; font-weight: bold; color: #ffc107;">{{ fine_stats.pending_count }}</div>
+                    <div style="color: #6c757d; font-size: 13px;">Pending</div>
+                </div>
+                <div style="background: white; padding: 12px; border-radius: 6px; text-align: center;">
+                    <div style="font-size: 20px; font-weight: bold; color: #28a745;">{{ fine_stats.paid_count }}</div>
+                    <div style="color: #6c757d; font-size: 13px;">Paid</div>
+                </div>
+                <div style="background: white; padding: 12px; border-radius: 6px; text-align: center;">
+                    <div style="font-size: 20px; font-weight: bold; color: #dc3545;">{{ fine_stats.cancelled_count }}</div>
+                    <div style="color: #6c757d; font-size: 13px;">Cancelled</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{{ block.super }}
+{% endblock %}

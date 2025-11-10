@@ -1,0 +1,318 @@
+{% extends 'libapp/base.html' %}
+{% block title %}Mobile Notification - ReadOps{% endblock %}
+{% block content %}
+{% load static %}
+
+<style>
+    .notification-container {
+        max-width: 500px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .notification-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        overflow: hidden;
+        border: 1px solid #e9ecef;
+    }
+
+    .notification-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+        position: relative;
+    }
+
+    .notification-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("{% static 'Images/Background.jpg' %}") center/cover;
+        opacity: 0.1;
+        z-index: 0;
+    }
+
+    .notification-header-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .bima-id {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .notification-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .notification-time {
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+
+    .notification-body {
+        padding: 2rem;
+    }
+
+    .book-info {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-left: 4px solid #667eea;
+    }
+
+    .book-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .book-details {
+        color: #666;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    .notification-message {
+        background: #e3f2fd;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-left: 4px solid #1976d2;
+    }
+
+    .message-text {
+        color: #1976d2;
+        font-weight: 500;
+        line-height: 1.6;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .action-btn {
+        flex: 1;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .action-btn:hover::before {
+        left: 100%;
+    }
+
+    .yes-btn {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    }
+
+    .yes-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .no-btn {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    }
+
+    .no-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .status-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+
+    .status-confirmed {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .status-rejected {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .status-expired {
+        background: #e2e3e5;
+        color: #383d41;
+        border: 1px solid #d6d8db;
+    }
+
+    .expiry-info {
+        text-align: center;
+        color: #666;
+        font-size: 0.9rem;
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+
+    @media (max-width: 768px) {
+        .notification-container {
+            margin: 1rem auto;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .action-btn {
+            padding: 1.2rem 2rem;
+        }
+    }
+</style>
+
+<div class="notification-container">
+    <div class="notification-card">
+        <div class="notification-header">
+            <div class="notification-header-content">
+                <div class="bima-id">{{ notification.bima_id }}</div>
+                <div class="notification-title">{{ notification.title }}</div>
+                <div class="notification-time">
+                    <i class="fas fa-clock"></i> {{ notification.created_date|date:"M d, Y H:i" }}
+                </div>
+            </div>
+        </div>
+
+        <div class="notification-body">
+            <!-- Status Indicator -->
+            <div class="status-indicator status-{{ notification.status|lower }}">
+                {% if notification.status == 'PENDING' %}
+                    <i class="fas fa-clock"></i> Awaiting Your Response
+                {% elif notification.status == 'CONFIRMED' %}
+                    <i class="fas fa-check-circle"></i> Confirmed
+                {% elif notification.status == 'REJECTED' %}
+                    <i class="fas fa-times-circle"></i> Rejected
+                {% elif notification.status == 'EXPIRED' %}
+                    <i class="fas fa-exclamation-triangle"></i> Expired
+                {% endif %}
+            </div>
+
+            <!-- Book Information -->
+            {% if notification.book_title %}
+            <div class="book-info">
+                <div class="book-title">
+                    <i class="fas fa-book"></i> {{ notification.book_title }}
+                </div>
+                <div class="book-details">
+                    {% if notification.book_id %}
+                        <p><strong>Book ID:</strong> {{ notification.book_id }}</p>
+                    {% endif %}
+                    <p><strong>Transaction Type:</strong> {{ notification.get_notification_type_display }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Notification Message -->
+            <div class="notification-message">
+                <div class="message-text">
+                    <i class="fas fa-info-circle"></i> {{ notification.message }}
+                </div>
+            </div>
+
+            <!-- Action Buttons (only show if pending) -->
+            {% if notification.status == 'PENDING' and not notification.is_expired %}
+            <div class="action-buttons">
+                <form method="post" action="{% url 'respond_notification' notification.id %}" style="flex: 1;">
+                    {% csrf_token %}
+                    <input type="hidden" name="response" value="yes">
+                    <button type="submit" class="action-btn yes-btn">
+                        <i class="fas fa-check"></i> YES
+                    </button>
+                </form>
+                
+                <form method="post" action="{% url 'respond_notification' notification.id %}" style="flex: 1;">
+                    {% csrf_token %}
+                    <input type="hidden" name="response" value="no">
+                    <button type="submit" class="action-btn no-btn">
+                        <i class="fas fa-times"></i> NO
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+
+            <!-- Expiry Information -->
+            <div class="expiry-info">
+                <i class="fas fa-hourglass-half"></i>
+                {% if notification.is_expired %}
+                    This notification expired on {{ notification.expires_at|date:"M d, Y H:i" }}
+                {% else %}
+                    Expires on {{ notification.expires_at|date:"M d, Y H:i" }}
+                {% endif %}
+            </div>
+
+            <!-- Response Information -->
+            {% if notification.response_date %}
+            <div class="expiry-info" style="background: #e8f5e8; color: #2d5a2d;">
+                <i class="fas fa-reply"></i>
+                You responded on {{ notification.response_date|date:"M d, Y H:i" }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

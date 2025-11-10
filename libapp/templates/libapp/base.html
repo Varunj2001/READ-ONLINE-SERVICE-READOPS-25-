@@ -4,93 +4,1031 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}{% endblock %}</title>
+    <title>{% block title %}{% endblock %} - ReadOps Library</title>
     <link rel="stylesheet" href="{% static 'css/Styles.css'%}" />
-    <link
-      rel="apple-touch-icon"
-      sizes="180x180"
-      href="{%static 'Images/apple-touch-icon.png' %}"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="32x32"
-      href="{%static 'Images/favicon-32x32.png'%}"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="16x16"
-      href="{%static 'Images/favicon-16x16.png'%}"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{%static 'Images/apple-touch-icon.png' %}" />
+    <link rel="icon" type="image/png" sizes="32x32" href="{%static 'Images/favicon-32x32.png'%}" />
+    <link rel="icon" type="image/png" sizes="16x16" href="{%static 'Images/favicon-16x16.png'%}" />
     <link rel="manifest" href="{%static 'Images/site.webmanifest'%}" />
-    <link
-      rel="mask-icon"
-      href="{%static 'Images/safari-pinned-tab.svg'%}"
-      color="#5bbad5"
-    />
+    <link rel="mask-icon" href="{%static 'Images/safari-pinned-tab.svg'%}" color="#5bbad5" />
     <meta name="msapplication-TileColor" content="#da532c" />
     <meta name="theme-color" content="#ffffff" />
+    <style>
+      /* Top-up Alert Notifications */
+      .top-alert {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 9999;
+        padding: 1rem 2rem;
+        margin: 0;
+        border-radius: 0;
+        font-weight: 500;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        transform: translateY(-100%);
+        transition: transform 0.3s ease-in-out;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        max-width: 100%;
+      }
+
+      .top-alert.show {
+        transform: translateY(0);
+      }
+
+      .top-alert.alert-danger {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+        color: white;
+        border-left: 4px solid #dc3545;
+      }
+
+      .top-alert.alert-warning {
+        background: linear-gradient(135deg, #ffd93d, #ffb347);
+        color: #856404;
+        border-left: 4px solid #ffc107;
+      }
+
+      .top-alert.alert-info {
+        background: linear-gradient(135deg, #4fc3f7, #29b6f6);
+        color: white;
+        border-left: 4px solid #17a2b8;
+      }
+
+      .top-alert.alert-success {
+        background: linear-gradient(135deg, #51cf66, #40c057);
+        color: white;
+        border-left: 4px solid #28a745;
+      }
+
+      .top-alert .alert-content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .top-alert .alert-icon {
+        font-size: 1.2rem;
+        flex-shrink: 0;
+      }
+
+      .top-alert .alert-message {
+        flex: 1;
+        font-size: 0.95rem;
+        line-height: 1.4;
+      }
+
+      .top-alert .alert-close {
+        background: none;
+        border: none;
+        color: inherit;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0;
+        margin-left: 1rem;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+        flex-shrink: 0;
+      }
+
+      .top-alert .alert-close:hover {
+        opacity: 1;
+      }
+
+      .navbar {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 2rem;
+        min-height: 70px;
+      }
+
+      .navbar > a {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+      }
+
+      .navbar .menu {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+      }
+
+      .navbar .Mmenu {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+      }
+
+      .navbar .Mmenu a {
+        text-decoration: none;
+        color: #333;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .navbar .Mmenu a:hover {
+        background: rgba(0, 123, 255, 0.1);
+        color: #007bff;
+      }
+
+      .navbar-right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .searchbar {
+        display: flex;
+        align-items: center;
+        background: white;
+        border: 1px solid #e1e1e1;
+        border-radius: 25px;
+        padding: 0.5rem 1rem;
+        min-width: 300px;
+        max-width: 400px;
+        transition: all 0.3s ease;
+      }
+
+      .searchbar:focus-within {
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+      }
+
+      .searchbar input {
+        border: none;
+        outline: none;
+        flex: 1;
+        padding: 0.5rem;
+        font-size: 0.9rem;
+        color: #333;
+      }
+
+      .searchbar input::placeholder {
+        color: #6c757d;
+      }
+
+      .searchbar button {
+        background: #f8f9fa;
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .searchbar button:hover {
+        background: #e9ecef;
+      }
+
+      .searchbar button img {
+        width: 16px;
+        height: 16px;
+      }
+
+      .notification {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: transparent;
+        border: 1px solid #e1e1e1;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        text-decoration: none;
+        color: inherit;
+      }
+
+      .notification:hover {
+        background: #f8f9fa;
+        border-color: #007bff;
+        text-decoration: none;
+        color: inherit;
+      }
+
+      .notification span {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #333;
+      }
+
+      .notification i {
+        font-size: 18px;
+        color: #007bff;
+      }
+
+      .cart-count {
+        background: #e74c3c;
+        color: white;
+        border-radius: 50%;
+        padding: 2px 6px;
+        font-size: 12px;
+        font-weight: bold;
+        margin-left: 5px;
+        min-width: 18px;
+        text-align: center;
+      }
+
+      .notificationDropdown-content {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 120%;
+        min-width: 300px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        padding: 1rem;
+        z-index: 1000;
+      }
+
+      .notificationDropdown-content.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+      }
+
+      .notificationDropdown-content p {
+        margin: 0.5rem 0;
+        padding: 0.75rem;
+        border-radius: 6px;
+        background: #f8f9fa;
+        color: #333;
+        font-size: 0.9rem;
+        transition: background-color 0.2s;
+      }
+
+      .notificationDropdown-content p:hover {
+        background: #e9ecef;
+      }
+
+      .dropdown {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      .dropbtn {
+        background: #007bff;
+        color: white;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .dropbtn:hover {
+        background: #0056b3;
+      }
+
+      .dropbtn::after {
+        content: '▼';
+        font-size: 0.7rem;
+        transition: transform 0.3s ease;
+      }
+
+      .dropdown:hover .dropbtn::after {
+        transform: rotate(180deg);
+      }
+
+      .dropdown-content {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 120%;
+        background: white;
+        min-width: 160px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+      }
+
+      .dropdown:hover .dropdown-content {
+        display: block;
+        animation: fadeIn 0.3s ease;
+      }
+
+      .dropdown-content a {
+        color: #333;
+        padding: 0.75rem 1rem;
+        text-decoration: none;
+        display: block;
+        transition: background-color 0.2s;
+        font-size: 0.9rem;
+      }
+
+      .dropdown-content a:hover {
+        background: #f8f9fa;
+        color: #007bff;
+      }
+
+      .searchbar {
+        background: white;
+        border: 1px solid #e1e1e1;
+        transition: all 0.3s ease;
+      }
+
+      .searchbar:focus-within {
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+      }
+
+      .searchbar input {
+        color: #333;
+      }
+
+      .searchbar input::placeholder {
+        color: #6c757d;
+      }
+
+      .searchbar button {
+        background: #f8f9fa;
+        transition: background-color 0.3s;
+      }
+
+      .searchbar button:hover {
+        background: #e9ecef;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .navbar {
+          padding: 0.5rem 1rem;
+          flex-wrap: wrap;
+          gap: 1rem;
+        }
+
+        .navbar .Mmenu {
+          gap: 0.5rem;
+        }
+
+        .navbar .Mmenu a {
+          padding: 0.25rem 0.5rem;
+          font-size: 0.9rem;
+        }
+
+        .searchbar {
+          min-width: 200px;
+          max-width: 250px;
+        }
+
+        .navbar-right {
+          gap: 0.5rem;
+        }
+
+        .notification {
+          padding: 0.25rem 0.5rem;
+        }
+
+        .notification span {
+          font-size: 0.8rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .navbar {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 0.5rem;
+        }
+
+        .navbar .menu {
+          justify-content: center;
+        }
+
+        .searchbar {
+          width: 100%;
+          max-width: none;
+        }
+      }
+
+      /* Sidebar Styles */
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 280px;
+        height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        z-index: 1000;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .sidebar.active {
+        transform: translateX(0);
+      }
+
+      .sidebar-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .sidebar-logo {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-decoration: none;
+        color: white;
+      }
+
+      .sidebar-logo img {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+      }
+
+      .logo-text {
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+
+      .sidebar-toggle {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 4px;
+        transition: background 0.3s ease;
+      }
+
+      .sidebar-toggle:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .sidebar-search {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .sidebar-search .searchbar {
+        display: flex;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .sidebar-search .searchbar input {
+        flex: 1;
+        padding: 0.75rem;
+        border: none;
+        background: transparent;
+        color: white;
+        outline: none;
+      }
+
+      .sidebar-search .searchbar input::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .sidebar-search .searchbar button {
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        color: white;
+        padding: 0.75rem;
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+
+      .sidebar-search .searchbar button:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .sidebar-nav {
+        flex: 1;
+        padding: 1rem 0;
+      }
+
+      .nav-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .nav-item {
+        margin-bottom: 0.25rem;
+      }
+
+      .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .nav-link:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+      }
+
+      .nav-link i {
+        width: 20px;
+        text-align: center;
+      }
+
+      .sidebar-user {
+        padding: 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+
+      .user-avatar {
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+      }
+
+      .user-details {
+        flex: 1;
+      }
+
+      .user-name {
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      .user-role {
+        font-size: 0.8rem;
+        opacity: 0.7;
+      }
+
+      .user-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        position: relative;
+        cursor: pointer;
+      }
+
+      .action-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        text-decoration: none;
+      }
+
+      .action-btn.logout {
+        background: rgba(220, 53, 69, 0.2);
+      }
+
+      .action-btn.logout:hover {
+        background: rgba(220, 53, 69, 0.3);
+      }
+
+      .notification-badge,
+      .cart-badge {
+        position: absolute;
+        top: 0.25rem;
+        right: 0.25rem;
+        background: #dc3545;
+        color: white;
+        border-radius: 50%;
+        padding: 0.125rem 0.375rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        min-width: 18px;
+        text-align: center;
+      }
+
+      .sidebar-auth {
+        padding: 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .auth-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        color: white;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        justify-content: center;
+      }
+
+      .auth-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        text-decoration: none;
+      }
+
+      /* Mobile Menu Toggle */
+      .mobile-menu-toggle {
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 1001;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        display: none;
+      }
+
+      .mobile-menu-toggle:hover {
+        background: #5a67d8;
+        transform: translateY(-2px);
+      }
+
+      /* Sidebar Overlay */
+      .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .sidebar-overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .content {
+        min-height: calc(100vh - 60px - 200px);
+        margin-left: 0;
+        transition: margin-left 0.3s ease;
+        padding: 2rem;
+      }
+
+      .content.sidebar-open {
+        margin-left: 280px;
+      }
+
+      /* Show sidebar on desktop by default */
+      @media (min-width: 769px) {
+        .sidebar {
+          transform: translateX(0);
+        }
+        
+        .content {
+          margin-left: 280px;
+        }
+        
+        .mobile-menu-toggle {
+          display: none;
+        }
+      }
+
+      /* Mobile styles */
+      @media (max-width: 768px) {
+        .mobile-menu-toggle {
+          display: block;
+        }
+        
+        .sidebar {
+          transform: translateX(-100%);
+        }
+        
+        .sidebar.active {
+          transform: translateX(0);
+        }
+        
+        .content {
+          margin-left: 0;
+        }
+        
+        .content.sidebar-open {
+          margin-left: 0;
+        }
+      }
+
+      .page__footer {
+        background: #2c3e50;
+        color: white;
+        padding: 3rem 0;
+        margin-top: 3rem;
+      }
+
+      .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        padding: 0 1rem;
+      }
+
+      .footer-col h4 {
+        color: white;
+        margin-bottom: 1.5rem;
+        font-size: 1.2rem;
+      }
+
+      .footer-col ul {
+        list-style: none;
+        padding: 0;
+      }
+
+      .footer-col ul li {
+        margin-bottom: 0.75rem;
+      }
+
+      .footer-col ul li a {
+        color: #ecf0f1;
+        text-decoration: none;
+        transition: color 0.3s;
+      }
+
+      .footer-col ul li a:hover {
+        color: #3498db;
+      }
+    </style>
   </head>
   <body>
-    <div class="navbar">
-      <a href="/">
-      <img
-        src="{%static 'Images/logo-no-background.png'%}"
-        alt="ReadOps"
-        height="40px"
-      />
-      </a>
-      <div class="menu Mmenu">
-        <a href="/">Home</a>
-        {% if user.is_librarian %}
-            <a href="explore">Update Books</a>
-        {% else %}
-            <a href="explore">Explore</a>
-        {% endif %}
-        <a href="aboutus">About us</a>
-      </div>
-      <form action="{% url 'explore' %}" class="searchbar">
-        <input type="text" placeholder="Search Books/Dept/Author" name="q" />
-        <button type="submit">
-          <img src="{%static 'Images/search.png'%}" alt="search" />
+    <!-- Top-up Alert Container -->
+    <div id="top-alert-container"></div>
+    
+    <!-- Side Navigation -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="/" class="sidebar-logo">
+          <img src="{%static 'Images/logo-no-background.png'%}" alt="ReadOps" />
+          <span class="logo-text">ReadOps</span>
+        </a>
+        <button class="sidebar-toggle" onclick="toggleSidebar()">
+          <i class="fas fa-times"></i>
         </button>
-      </form>
-      <button class="notification" onclick="toggleNotifications()">
-        <img
-          src="{%static 'Images/notification.png'%}"
-          alt=""
-          height="25px"
-        /><span> ALERTS</span>
-        <div id="notificationDropdown" class="notificationDropdown-content">
-          {% if user.notifications %}
-            {% for notification in user.notifications %}
-              <p>Reminder to return {{ notification.title }} by {{ notification.end_date }}</p>
-            {% endfor %}
+      </div>
+
+      <!-- Search Bar -->
+      <div class="sidebar-search">
+        <form action="{% url 'explore' %}" class="searchbar">
+          <input type="text" placeholder="Search Books..." name="q" />
+          <button type="submit">
+            <i class="fas fa-search"></i>
+          </button>
+        </form>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="sidebar-nav">
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Home</span>
+            </a>
+          </li>
+
+          {% if user.is_librarian %}
+            <li class="nav-item">
+              <a href="{% url 'explore' %}" class="nav-link">
+                <i class="fas fa-edit"></i>
+                <span>Update Books</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'status_view' %}" class="nav-link">
+                <i class="fas fa-chart-bar"></i>
+                <span>Status</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'view_payments' %}" class="nav-link">
+                <i class="fas fa-credit-card"></i>
+                <span>View Payments</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'analytics_dashboard' %}" class="nav-link">
+                <i class="fas fa-chart-line"></i>
+                <span>Analytics</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'inventory_management' %}" class="nav-link">
+                <i class="fas fa-warehouse"></i>
+                <span>Inventory</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'notification_management' %}" class="nav-link">
+                <i class="fas fa-bell"></i>
+                <span>Notifications</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'bulk_operations' %}" class="nav-link">
+                <i class="fas fa-tasks"></i>
+                <span>Bulk Operations</span>
+              </a>
+            </li>
           {% else %}
-            <p>No notifications</p>
+            <li class="nav-item">
+              <a href="{% url 'explore' %}" class="nav-link">
+                <i class="fas fa-search"></i>
+                <span>Explore</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'digital_library' %}" class="nav-link">
+                <i class="fas fa-book-open"></i>
+                <span>Digital Library</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'ai_recommendations' %}" class="nav-link">
+                <i class="fas fa-robot"></i>
+                <span>AI Recommendations</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'smart_recommendations' %}" class="nav-link">
+                <i class="fas fa-brain"></i>
+                <span>Smart Recommendations</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'user_dashboard' %}" class="nav-link">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>My Dashboard</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'reading_insights' %}" class="nav-link">
+                <i class="fas fa-chart-pie"></i>
+                <span>Reading Insights</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'advanced_search' %}" class="nav-link">
+                <i class="fas fa-search-plus"></i>
+                <span>Advanced Search</span>
+              </a>
+            </li>
           {% endif %}
-        </div>
-      </button>
-      <div class="menu">
-        <div id="user-info">
-          {% if user.is_authenticated %}
-          <div class="dropdown">
-            <button class="dropbtn">{{ user.username }}</button>
-            <div class="dropdown-content">
-              <a href="{% if user.is_librarian %}ldashboard{% else %}dashboard{% endif %}" id="username">Dashboard</a>
-              <a href="{% url 'logout' %}">Logout</a>
+
+          <li class="nav-item">
+            <a href="{% url 'aboutus_view' %}" class="nav-link">
+              <i class="fas fa-info-circle"></i>
+              <span>About us</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- User Section -->
+      {% if user.is_authenticated %}
+        <div class="sidebar-user">
+          <div class="user-info">
+            <div class="user-avatar">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="user-details">
+              <div class="user-name">{{ user.username }}</div>
+              <div class="user-role">{% if user.is_librarian %}Librarian{% else %}Member{% endif %}</div>
             </div>
           </div>
-          {% else %}
-            <div class="Mmenu">
-              <a href="{% url 'login' %}" >Login</a>
-            </div>
-          {% endif %}
+          
+          <!-- User Actions -->
+          <div class="user-actions">
+            <!-- Notifications -->
+            <button class="action-btn notification" onclick="toggleNotifications()">
+              <i class="fas fa-bell"></i>
+              <span>Notifications</span>
+              {% if user.safe_notifications|length > 0 %}
+                <span class="notification-badge">{{ user.safe_notifications|length }}</span>
+              {% endif %}
+            </button>
+            
+            <!-- Cart (for regular users only) -->
+            {% if not user.is_librarian %}
+              <a href="{% url 'cart_view' %}" class="action-btn">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Cart</span>
+                {% if user.cart %}
+                  <span class="cart-badge">{{ user.cart|length }}</span>
+                {% endif %}
+              </a>
+            {% endif %}
+
+            <!-- Digital Books (for regular users) -->
+            {% if not user.is_librarian %}
+              <a href="{% url 'my_digital_books' %}" class="action-btn">
+                <i class="fas fa-book"></i>
+                <span>My Digital Books</span>
+              </a>
+            {% endif %}
+
+            <!-- Dashboard -->
+            <a href="{% if user.is_librarian %}ldashboard{% else %}dashboard{% endif %}" class="action-btn">
+              <i class="fas fa-tachometer-alt"></i>
+              <span>Dashboard</span>
+            </a>
+
+            <!-- Logout -->
+            <a href="{% url 'logout' %}" class="action-btn logout">
+              <i class="fas fa-sign-out-alt"></i>
+              <span>Logout</span>
+            </a>
+          </div>
         </div>
-      </div>
+      {% else %}
+        <div class="sidebar-auth">
+          <a href="{% url 'login' %}" class="auth-btn">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>Login</span>
+          </a>
+        </div>
+      {% endif %}
     </div>
-    <div class="content">{% block content %} {% endblock %}</div>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Overlay for mobile -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <div class="content">
+      {% block content %}{% endblock %}
+    </div>
+
     <footer class="page__footer">
       <div class="footer-content">
         <div class="footer-col">
@@ -104,74 +1042,118 @@
         </div>
 
         <div class="footer-col">
-          <h4>Find us on</h4>
+          <h4>Connect with us</h4>
           <ul>
-            <li>
-              <a
-                href="https://www.instagram.com/tourismgoi/?hl=en"
-                target="_blank"
-                rel="noopener"
-                >Instagram</a
-              >
-            </li>
-            <li>
-              <a
-                href="https://www.youtube.com/channel/UCMxJPchGLE_CJ1MJbJy-xDQ"
-                target="_blank"
-                rel="noopener"
-                >YouTube</a
-              >
-            </li>
-            <li>
-              <a
-                href="https://twitter.com/tourismgoi"
-                target="_blank"
-                rel="noopener"
-                >Twitter</a
-              >
-            </li>
-            <li>
-              <a
-                href="https://www.facebook.com/incredibleindia/"
-                target="_blank"
-                rel="noopener"
-                >Facebook</a
-              >
-            </li>
+            <li><a href="https://www.instagram.com" target="_blank" rel="noopener">Instagram</a></li>
+            <li><a href="https://www.youtube.com" target="_blank" rel="noopener">YouTube</a></li>
+            <li><a href="https://twitter.com" target="_blank" rel="noopener">Twitter</a></li>
+            <li><a href="https://www.facebook.com" target="_blank" rel="noopener">Facebook</a></li>
+            <li><a href="https://www.linkedin.com" target="_blank" rel="noopener">LinkedIn</a></li>
           </ul>
         </div>
 
         <div class="footer-col">
-          <h4>&copy; ReadOps</h4>
-          <p>
-            <a
-              rel="license"
-              href="http://creativecommons.org/licenses/by-nc-sa/2.0/"
-            >
-              <img alt="Creative Commons License" src="{%static 'Images/license.png'%}"/>
-            </a>
-          </p>
-          <p>
-            <a href="http://cbit.ac.in" target="_blank" rel="noopener"
-              >Chaitanya Bharathi Institute of Technology</a
-            >
-          </p>
+          <h4>&copy; 2025 ReadOps</h4>
+          <p>All Rights Reserved.</p>
         </div>
       </div>
     </footer>
+
     <script>
+      function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const content = document.querySelector('.content');
+        
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+        content.classList.toggle('sidebar-open');
+      }
+
       function toggleNotifications() {
         const notificationDropdown = document.getElementById("notificationDropdown");
         notificationDropdown.classList.toggle("active");
       }
     
-      // Close the notifications dropdown if user clicks outside of it
       window.addEventListener("click", function (event) {
-        const notificationDropdown = document.getElementById("notificationDropdown");
         if (!event.target.closest(".notification")) {
+          const notificationDropdown = document.getElementById("notificationDropdown");
           notificationDropdown.classList.remove("active");
         }
       });
+
+      // Top-up Alert System
+      function showTopAlert(message, type = 'info', duration = 5000) {
+        const container = document.getElementById('top-alert-container');
+        const alertId = 'alert-' + Date.now();
+        
+        const alertHTML = `
+          <div id="${alertId}" class="top-alert alert-${type}">
+            <div class="alert-content">
+              <span class="alert-icon">
+                ${type === 'danger' ? '⚠️' : type === 'warning' ? '⚠️' : type === 'success' ? '✅' : 'ℹ️'}
+              </span>
+              <span class="alert-message">${message}</span>
+            </div>
+            <button class="alert-close" onclick="closeTopAlert('${alertId}')">&times;</button>
+          </div>
+        `;
+        
+        container.insertAdjacentHTML('beforeend', alertHTML);
+        
+        // Show the alert
+        setTimeout(() => {
+          const alert = document.getElementById(alertId);
+          if (alert) {
+            alert.classList.add('show');
+          }
+        }, 100);
+        
+        // Auto-close after duration
+        if (duration > 0) {
+          setTimeout(() => {
+            closeTopAlert(alertId);
+          }, duration);
+        }
+      }
+
+      function closeTopAlert(alertId) {
+        const alert = document.getElementById(alertId);
+        if (alert) {
+          alert.classList.remove('show');
+          setTimeout(() => {
+            if (alert.parentNode) {
+              alert.parentNode.removeChild(alert);
+            }
+          }, 300);
+        }
+      }
+
+      // Show alerts from Django messages
+      {% if messages %}
+        {% for message in messages %}
+          showTopAlert('{{ message|escapejs }}', '{{ message.tags|default:"info" }}', 7000);
+        {% endfor %}
+      {% endif %}
+
+      // Show user-specific alerts
+      {% if user.is_authenticated %}
+        {% if user.books %}
+          {% for book in user.books %}
+            {% if book.is_overdue %}
+              showTopAlert('⚠️ Overdue Book: "{{ book.title }}" was due on {{ book.end_date|date:"Y-m-d" }}. Please return it soon to avoid additional fines.', 'danger', 10000);
+            {% elif book.end_date|date:"Y-m-d" == today|date:"Y-m-d" %}
+              showTopAlert('📚 Due Today: "{{ book.title }}" is due today. Please return it to avoid fines.', 'warning', 8000);
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+        
+        {% if user.safe_notifications %}
+          {% for notification in user.safe_notifications %}
+            showTopAlert('📱 {{ notification.message }}', 'info', 6000);
+          {% endfor %}
+        {% endif %}
+      {% endif %}
     </script>
   </body>
 </html>

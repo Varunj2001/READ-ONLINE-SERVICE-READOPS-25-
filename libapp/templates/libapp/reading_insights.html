@@ -1,0 +1,263 @@
+{% extends 'libapp/base.html' %}
+{% block title %}Reading Insights - ReadOps{% endblock %}
+{% block content %}
+{% load static %}
+
+<style>
+    .insights-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .insights-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 2rem;
+        text-align: center;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+    }
+
+    .insights-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .insight-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+    }
+
+    .insight-card h3 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 0.5rem;
+    }
+
+    .metric-label {
+        color: #666;
+        font-size: 1.1rem;
+    }
+
+    .reading-level {
+        background: linear-gradient(135deg, #4caf50, #8bc34a);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        text-align: center;
+    }
+
+    .reading-level .level {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .current-books {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .book-item {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .book-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .book-info h4 {
+        color: #2c3e50;
+        margin-bottom: 0.25rem;
+        font-size: 1rem;
+    }
+
+    .book-info p {
+        color: #666;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    .book-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-current {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-overdue {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .favorite-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .tag {
+        background: #667eea;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #666;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: #ddd;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="insights-container">
+    <div class="insights-header">
+        <h1><i class="fas fa-chart-pie"></i> My Reading Insights</h1>
+        <p>Discover your reading patterns and personalized statistics</p>
+    </div>
+
+    <div class="insights-grid">
+        <!-- Reading Level -->
+        <div class="insight-card reading-level">
+            <h3><i class="fas fa-trophy"></i> Reading Level</h3>
+            <div class="level">{{ user_patterns.reading_level }}</div>
+            <p>Based on your borrowing activity</p>
+        </div>
+
+        <!-- Total Books Borrowed -->
+        <div class="insight-card">
+            <h3><i class="fas fa-book"></i> Total Books Borrowed</h3>
+            <div class="metric-value">{{ user_patterns.total_books_borrowed }}</div>
+            <div class="metric-label">Books in your reading journey</div>
+        </div>
+
+        <!-- Average Duration -->
+        <div class="insight-card">
+            <h3><i class="fas fa-clock"></i> Average Reading Time</h3>
+            <div class="metric-value">{{ user_patterns.average_borrowing_duration }}</div>
+            <div class="metric-label">Days per book</div>
+        </div>
+
+        <!-- Reading Streak -->
+        <div class="insight-card">
+            <h3><i class="fas fa-fire"></i> Current Streak</h3>
+            <div class="metric-value">{{ reading_streak }}</div>
+            <div class="metric-label">Books currently borrowed</div>
+        </div>
+    </div>
+
+    <!-- Favorite Subjects and Authors -->
+    <div class="insight-card">
+        <h3><i class="fas fa-heart"></i> Your Reading Preferences</h3>
+        
+        {% if user_patterns.favorite_subjects %}
+        <div style="margin-bottom: 1.5rem;">
+            <h4 style="color: #2c3e50; margin-bottom: 1rem;">Favorite Subjects</h4>
+            <div class="favorite-tags">
+                {% for subject in user_patterns.favorite_subjects %}
+                <span class="tag">{{ subject }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if user_patterns.favorite_authors %}
+        <div>
+            <h4 style="color: #2c3e50; margin-bottom: 1rem;">Favorite Authors</h4>
+            <div class="favorite-tags">
+                {% for author in user_patterns.favorite_authors %}
+                <span class="tag">{{ author }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if not user_patterns.favorite_subjects and not user_patterns.favorite_authors %}
+        <div class="empty-state">
+            <i class="fas fa-book-open"></i>
+            <h3>No Preferences Yet</h3>
+            <p>Start borrowing books to discover your reading preferences!</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Current Books -->
+    {% if current_books %}
+    <div class="insight-card">
+        <h3><i class="fas fa-list"></i> Currently Reading</h3>
+        <div class="current-books">
+            {% for book_data in current_books %}
+            <div class="book-item">
+                <div class="book-info">
+                    <h4>{{ book_data.book.title }}</h4>
+                    <p><strong>Author:</strong> {{ book_data.book.author }} | <strong>Due:</strong> {{ book_data.borrow_data.end_date|date:"M d, Y" }}</p>
+                </div>
+                <div class="book-status {% if book_data.borrow_data.is_overdue %}status-overdue{% else %}status-current{% endif %}">
+                    {% if book_data.borrow_data.is_overdue %}Overdue{% else %}Current{% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Reading Tips -->
+    <div class="insight-card" style="margin-top: 2rem;">
+        <h3><i class="fas fa-lightbulb"></i> Reading Tips for You</h3>
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-top: 1rem;">
+            {% if user_patterns.reading_level == 'Beginner' %}
+            <p><strong>📚 Start Small:</strong> Try borrowing 2-3 books at a time to build your reading habit.</p>
+            <p><strong>🎯 Explore:</strong> Try different subjects to discover what you enjoy most.</p>
+            {% elif user_patterns.reading_level == 'Intermediate' %}
+            <p><strong>📈 Challenge Yourself:</strong> Try books from subjects you haven't explored yet.</p>
+            <p><strong>⏰ Set Goals:</strong> Aim to read a certain number of books per month.</p>
+            {% elif user_patterns.reading_level == 'Advanced' %}
+            <p><strong>🌟 Mentor Others:</strong> Share your reading recommendations with friends.</p>
+            <p><strong>📊 Track Progress:</strong> Keep a reading journal to track your insights.</p>
+            {% else %}
+            <p><strong>🏆 Expert Level:</strong> Consider writing reviews and helping other readers discover great books.</p>
+            <p><strong>📚 Lead by Example:</strong> Your reading habits inspire others in the community.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

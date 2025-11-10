@@ -4,50 +4,144 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Glassmorphism Login Page</title>
+  <title>Librarian Login - Library Management System</title>
   <link rel="stylesheet" href="{% static  'css/Styles.css'%}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@1,300&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Lato:wght@700&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
-<style>
-  .log {
-    background-image: url("{% static 'Images/log.jpg' %}");
-  }
-</style>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@1,300&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+  <style>
+    .back-button {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      padding: 10px 15px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+    
+    .back-button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+    
+    .logo-container {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+    
+    .logo {
+      width: 50px;
+      height: 50px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+      font-size: 24px;
+      color: white;
+    }
+    
+    .log {
+      background-image: url("{% static 'Images/log.jpg' %}");
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+    .glass-container {
+      padding: 2rem;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    .formi {
+      margin-bottom: 1.5rem;
+    }
+    .formi input {
+      width: 100%;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+    }
+    .formi input::placeholder {
+      color: rgba(255, 255, 255, 0.8);
+    }
+    h2 {
+      color: #fff;
+      text-align: center;
+      margin-bottom: 2rem;
+      font-family: 'Lato', sans-serif;
+    }
+    .btn {
+      width: 100%;
+      padding: 0.75rem;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    .btn:hover {
+      background: #0056b3;
+    }
+    .alert {
+      margin-bottom: 1.5rem;
+    }
+  </style>
 </head>
 <body>
-  
-    <div class="log" >
-      
-  <div class="glass-container">
-    {% if  messages %}
-                  {% for message in messages %}
-                    <div class="alert alert-warning" role="alert">
-                      {{message}}
-                      
-                    </div>
-                  
-                  {% endfor %}
-                {% endif %}
-      
-              {% block content %}
-              {% endblock %}
-    </form>
-    <h2>Librarian Login</h2>
-    <form action="login_librarian" method="post">
-      {% csrf_token %}
-    <div class="formi">
-      <input type="text" placeholder="Username" name="username" required>
-    </div>
-    <div class="formi">
-        <input type="password" placeholder="Password" name="password" required>
+  <div class="log">
+    <!-- Back Button -->
+    <a href="{% url 'home' %}" class="back-button">
+      <i class="fas fa-arrow-left"></i> Back to Home
+    </a>
+    
+    <!-- Logo -->
+    <div class="logo-container">
+      <div class="logo">
+        <i class="fas fa-book"></i>
       </div>
-      <button type="submit" class="btn">Login</button>
-    </form>
+    </div>
+    
+    <div class="glass-container">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-warning" role="alert">
+            {{message}}
+          </div>
+        {% endfor %}
+      {% endif %}
+      
+      <h2>Librarian Login</h2>
+      <form action="{% url 'login_librarian' %}" method="post">
+        {% csrf_token %}
+        <div class="formi">
+          <input type="text" placeholder="Username" name="username" required>
+        </div>
+        <div class="formi">
+          <input type="password" placeholder="Password" name="password" required>
+        </div>
+        <button type="submit" class="btn">Login</button>
+      </form>
+    </div>
   </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

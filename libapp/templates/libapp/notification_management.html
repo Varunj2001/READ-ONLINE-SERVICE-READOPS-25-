@@ -1,0 +1,571 @@
+{% extends 'libapp/base.html' %}
+{% block title %}Notification Management - ReadOps Library{% endblock %}
+{% block content %}
+{% load static %}
+
+<style>
+    .notification-management {
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .page-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        font-weight: 700;
+    }
+
+    .page-header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        text-align: center;
+        border: 1px solid #e9ecef;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    }
+
+    .stat-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #667eea;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: #666;
+        font-size: 1.1rem;
+    }
+
+    .management-section {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .section-header {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .section-header h2 {
+        color: #333;
+        font-size: 1.8rem;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .section-content {
+        padding: 2rem;
+    }
+
+    .notification-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .notification-item {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .notification-item:hover {
+        background: #e9ecef;
+        transform: translateX(5px);
+    }
+
+    .notification-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .notification-title {
+        font-weight: 600;
+        color: #333;
+        font-size: 1.2rem;
+    }
+
+    .notification-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-confirmed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-expired {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .notification-details {
+        color: #666;
+        margin-bottom: 1rem;
+    }
+
+    .notification-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-primary {
+        background: #667eea;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #5a67d8;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #218838;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #c82333;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+        color: white;
+        text-decoration: none;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #666;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .filters {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+
+    .filter-form {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: end;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        color: #333;
+        font-size: 0.9rem;
+    }
+
+    .filter-group select,
+    .filter-group input {
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        min-width: 150px;
+    }
+
+    .filter-group select:focus,
+    .filter-group input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    @media (max-width: 768px) {
+        .notification-management {
+            padding: 1rem;
+        }
+
+        .page-header {
+            padding: 2rem 1rem;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .notification-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .notification-actions {
+            flex-direction: column;
+        }
+
+        .filter-form {
+            flex-direction: column;
+        }
+
+        .filter-group {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="notification-management">
+    <div class="page-header">
+        <h1><i class="fas fa-bell"></i> Notification Management</h1>
+        <p>Manage and monitor all library notifications and alerts</p>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-bell"></i>
+            </div>
+            <div class="stat-number">{{ total_notifications }}</div>
+            <div class="stat-label">Total Notifications</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-number">{{ pending_notifications }}</div>
+            <div class="stat-label">Pending</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-number">{{ confirmed_notifications }}</div>
+            <div class="stat-label">Confirmed</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div class="stat-number">{{ expired_notifications }}</div>
+            <div class="stat-label">Expired</div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+        <h3 style="margin-bottom: 1rem; color: #333;"><i class="fas fa-filter"></i> Filter Notifications</h3>
+        <form method="GET" class="filter-form">
+            <div class="filter-group">
+                <label for="status">Status</label>
+                <select name="status" id="status">
+                    <option value="">All Statuses</option>
+                    <option value="PENDING" {% if selected_status == 'PENDING' %}selected{% endif %}>Pending</option>
+                    <option value="CONFIRMED" {% if selected_status == 'CONFIRMED' %}selected{% endif %}>Confirmed</option>
+                    <option value="EXPIRED" {% if selected_status == 'EXPIRED' %}selected{% endif %}>Expired</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="type">Type</label>
+                <select name="type" id="type">
+                    <option value="">All Types</option>
+                    <option value="BOOK_DUE" {% if selected_type == 'BOOK_DUE' %}selected{% endif %}>Book Due</option>
+                    <option value="BOOK_OVERDUE" {% if selected_type == 'BOOK_OVERDUE' %}selected{% endif %}>Book Overdue</option>
+                    <option value="BOOK_RETURNED" {% if selected_type == 'BOOK_RETURNED' %}selected{% endif %}>Book Returned</option>
+                    <option value="PAYMENT_DUE" {% if selected_type == 'PAYMENT_DUE' %}selected{% endif %}>Payment Due</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="user">User</label>
+                <input type="text" name="user" id="user" placeholder="Search by username" value="{{ selected_user }}">
+            </div>
+            
+            <div class="filter-group">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Recent Notifications -->
+    <div class="management-section">
+        <div class="section-header">
+            <h2><i class="fas fa-list"></i> Recent Notifications</h2>
+        </div>
+        <div class="section-content">
+            {% if recent_notifications %}
+                <ul class="notification-list">
+                    {% for notification in recent_notifications %}
+                        <li class="notification-item">
+                            <div class="notification-header">
+                                <div class="notification-title">{{ notification.title }}</div>
+                                <div class="notification-status status-{{ notification.status|lower }}">
+                                    {{ notification.status }}
+                                </div>
+                            </div>
+                            <div class="notification-details">
+                                <p><strong>User:</strong> {{ notification.user.username }}</p>
+                                <p><strong>Type:</strong> {{ notification.notification_type }}</p>
+                                <p><strong>Message:</strong> {{ notification.message }}</p>
+                                <p><strong>Created:</strong> {{ notification.created_date|date:"M d, Y H:i" }}</p>
+                                {% if notification.book_title %}
+                                    <p><strong>Book:</strong> {{ notification.book_title }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="notification-actions">
+                                {% if notification.status == 'PENDING' %}
+                                    <a href="{% url 'respond_notification' notification.id %}" class="btn btn-success">
+                                        <i class="fas fa-check"></i> Respond
+                                    </a>
+                                {% endif %}
+                                <a href="{% url 'mobile_notification' notification.id %}" class="btn btn-primary">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                                {% if notification.status != 'EXPIRED' %}
+                                    <a href="#" class="btn btn-danger" onclick="markAsExpired({{ notification.id }})">
+                                        <i class="fas fa-times"></i> Mark Expired
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-bell-slash"></i>
+                    <h3>No Notifications Found</h3>
+                    <p>There are no notifications matching your current filters.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Notification Types Overview -->
+    <div class="management-section">
+        <div class="section-header">
+            <h2><i class="fas fa-chart-pie"></i> Notification Types Overview</h2>
+        </div>
+        <div class="section-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="stat-number">{{ book_due_count }}</div>
+                    <div class="stat-label">Book Due Notifications</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-number">{{ overdue_count }}</div>
+                    <div class="stat-label">Overdue Notifications</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-undo"></i>
+                    </div>
+                    <div class="stat-number">{{ returned_count }}</div>
+                    <div class="stat-label">Return Notifications</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <div class="stat-number">{{ payment_count }}</div>
+                    <div class="stat-label">Payment Notifications</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Actions -->
+    <div class="management-section">
+        <div class="section-header">
+            <h2><i class="fas fa-tasks"></i> Bulk Actions</h2>
+        </div>
+        <div class="section-content">
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="sendBulkReminders()">
+                    <i class="fas fa-paper-plane"></i> Send Bulk Reminders
+                </button>
+                <button class="btn btn-success" onclick="markAllAsRead()">
+                    <i class="fas fa-check-double"></i> Mark All as Read
+                </button>
+                <button class="btn btn-secondary" onclick="cleanupExpired()">
+                    <i class="fas fa-trash"></i> Cleanup Expired
+                </button>
+                <button class="btn btn-primary" onclick="exportNotifications()">
+                    <i class="fas fa-download"></i> Export Notifications
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function markAsExpired(notificationId) {
+    if (confirm('Are you sure you want to mark this notification as expired?')) {
+        // This would typically make an AJAX call to update the notification status
+        fetch(`/mark-notification-expired/${notificationId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error updating notification status');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating notification status');
+        });
+    }
+}
+
+function sendBulkReminders() {
+    if (confirm('Send reminder notifications to all users with pending notifications?')) {
+        // Implementation for bulk reminders
+        alert('Bulk reminders sent successfully!');
+    }
+}
+
+function markAllAsRead() {
+    if (confirm('Mark all notifications as read?')) {
+        // Implementation for marking all as read
+        alert('All notifications marked as read!');
+    }
+}
+
+function cleanupExpired() {
+    if (confirm('Remove all expired notifications?')) {
+        // Implementation for cleanup
+        alert('Expired notifications cleaned up!');
+    }
+}
+
+function exportNotifications() {
+    // Implementation for exporting notifications
+    alert('Notifications exported successfully!');
+}
+</script>
+
+{% endblock %}

@@ -1,93 +1,521 @@
 {% extends 'libapp/base.html' %} 
- {% block title%}Explore{%endblock %} 
- {% block content %} {% load static %}
- <div class="explorebody">
- <!-- Sidebar with Cascading Filters -->
- <div class="sidebar">
-    <form method="get" id="filter-form">
-        {% csrf_token %}
-        <label for="id_department" class="sidebarHead">Department</label>
-        <br/>
-        <br/>
-        <hr/>
-        <br/>
-        {% for department_value, department_label in form.department.field.choices %}
-            <div class="filterboxes">    
-                <input type="radio" id="id_department_{{ forloop.counter0 }}"
-                    name="department" value="{{ department_value }}"
-                    {% if department_value == form.department.value %}checked{% endif %}>
-                <label for="id_department_{{ forloop.counter0 }}">{{ department_label }}</label>
-                <br/>
-            </div>
-        {% endfor %}
+{% block title%}Explore Books - ReadOps{%endblock %} 
+{% block content %} {% load static %}
+<style>
+  .explore-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
 
-        <br>
+  .explore-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("{% static 'Images/Explore books.jpg' %}") center/cover;
+    opacity: 0.1;
+    z-index: 0;
+  }
 
-        <label class="sidebarHead">Subjects:</label><br>
-        <br/>
+  .explore-hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+  }
 
-        <hr/>
-        <br/>
-        {% for subject_value, subject_label in form.subjects.field.choices %}
-            <div class="filterboxes">
-                <input type="radio" id="id_subject_{{ forloop.counter0 }}"
-                    name="subjects" value="{{ subject_value }}"
-                    {% if subject_value in form.subjects.value %}checked{% endif %} >
-                <label for="id_subject_{{ forloop.counter0 }}">{{ subject_label }}</label>
-                <br/>
-            </div>
-        {% endfor %}
+  .explore-hero h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  }
 
-        <br>
+  .explore-hero p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin-bottom: 2rem;
+  }
 
-        <button type="submit" class="applyfilterbtn">Apply Filters</button>
-    </form>
+  .explore-container {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 2rem;
+    padding: 2rem;
+    min-height: calc(100vh - 64px);
+    background: #f8f9fa;
+  }
+
+  .sidebar {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    height: fit-content;
+    position: sticky;
+    top: 2rem;
+    border: 1px solid #e9ecef;
+  }
+
+  .sidebar-title {
+    color: #2c3e50;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+
+  .filter-section {
+    margin-bottom: 2rem;
+  }
+
+  .filter-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .filter-divider {
+    border: none;
+    border-top: 1px solid rgba(44, 62, 80, 0.1);
+    margin: 1rem 0;
+  }
+
+  .filter-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+  }
+
+  .filter-option input[type="radio"] {
+    appearance: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid #4a90e2;
+    border-radius: 50%;
+    margin: 0;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .filter-option input[type="radio"]:checked::after {
+    content: '';
+    position: absolute;
+    width: 0.75rem;
+    height: 0.75rem;
+    background: #4a90e2;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .filter-option label {
+    color: #2c3e50;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+
+  .apply-filters-btn {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-top: 1.5rem;
+  }
+
+  .apply-filters-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
+  }
+
+  .apply-filters-btn:active {
+    transform: translateY(0);
+  }
+
+  .books-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+
+  .book-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    position: relative;
+  }
+
+  .book-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    border-color: #667eea;
+  }
+
+  .book-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .book-card:hover::before {
+    opacity: 1;
+  }
+
+  .book-image {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .book-card:hover .book-image {
+    transform: scale(1.05);
+  }
+
+  .book-info {
+    padding: 2rem;
+    position: relative;
+  }
+
+  .book-title {
+    color: #2c3e50;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    line-height: 1.3;
+    transition: color 0.3s ease;
+  }
+
+  .book-card:hover .book-title {
+    color: #667eea;
+  }
+
+  .book-detail {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #666;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f8f9fa;
+  }
+
+  .book-detail:last-of-type {
+    border-bottom: none;
+  }
+
+  .book-detail strong {
+    color: #2c3e50;
+    font-weight: 600;
+  }
+
+  .book-detail span {
+    color: #667eea;
+    font-weight: 500;
+  }
+
+  .book-action {
+    margin-top: 1.5rem;
+  }
+
+  .book-btn {
+    width: 100%;
+    padding: 1rem;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .book-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .book-btn:hover::before {
+    left: 100%;
+  }
+
+  .update-btn {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+  }
+
+  .take-btn {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+  }
+
+  .add-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  }
+
+  .book-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  }
+
+  .book-btn:active {
+    transform: translateY(-1px);
+  }
+
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem;
+    color: #666;
+    font-size: 1.125rem;
+  }
+
+  @media (max-width: 1024px) {
+    .explore-container {
+      grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+      position: static;
+      margin-bottom: 2rem;
+    }
+  }
+
+  /* Free Books Section Styles */
+  .free-book-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  }
+
+  .free-book-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+  }
+
+  .platform-link:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    border-color: #667eea;
+  }
+
+  .platform-link h4:hover {
+    color: #667eea;
+  }
+
+  @media (max-width: 768px) {
+    .explore-container {
+      padding: 1rem;
+    }
+
+    .books-grid {
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+
+    .free-books-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .platforms-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="explore-hero">
+  <div class="explore-hero-content">
+    <h1><i class="fas fa-search"></i> Explore Our Library</h1>
+    <p>Discover thousands of books across various departments and subjects</p>
+  </div>
 </div>
 
-    <!-- Main Content: Books Displayed as Tiles -->
-    <div class="main-content" id="books-container">
-       
-        {% for book in books %}
-        <div class="book-tile">
-            {% if book.image %}
-            <img src="{{ book.image.url }}" alt="{{ book.title }} " height="180px" width="180px">
-            {% endif %}
-            <h3>{{ book.title }}</h3>
-            <p>Author: {{ book.author }}</p>
-            <p>Quantity: {{ book.quantity }}</p>
-            <p>Department: {{ book.department }}</p>
-            <p>Subject: {{ book.subject }}</p>
-            {%if user.is_librarian %}
-                <form action="{% url 'update_book_details' book.pk %}" method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <input type="hidden" name="book" value="{{ book.pk }}">
-                    <button type="submit" class="applyfilterbtn">Update Book Details</button>
-                </form>
-            {% else %}
-                <form action="{% url 'book_request' %}" method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="book" value="{{ book.pk }}">
-                    <button type="submit" class="applyfilterbtn">Take Book</button>
-                </form>
-            {% endif %}
-        </div>
-        
-        {% empty %}
-        <p>No books found with selected filters.</p>
+<div class="explore-container">
+  <div class="sidebar">
+    <form method="get" id="filter-form">
+      {% csrf_token %}
+      <div class="filter-section">
+        <h3 class="sidebar-title">Department</h3>
+        <div class="filter-divider"></div>
+        {% for department_value, department_label in form.department.field.choices %}
+          <div class="filter-option">
+            <input type="radio" id="id_department_{{ forloop.counter0 }}"
+                   name="department" value="{{ department_value }}"
+                   {% if department_value == form.department.value %}checked{% endif %}>
+            <label for="id_department_{{ forloop.counter0 }}">{{ department_label }}</label>
+          </div>
         {% endfor %}
-        {%if user.is_librarian %}
-        <div class="book-tile">
-            <img src="{% static 'Images/addbook.png' %}" alt="Add Book" height="180px" width="180px">
-            <h3>Book Title</h3>
-            <p>Author: </p>
-            <p>Quantity: </p>
-            <p>Department: </p>
-            <p>Subject: </p>
-            <form action="{% url 'add_new_book' %}" method="post">
-                {% csrf_token %}
-                <button type="submit" class="applyfilterbtn">Add Book</button>
-            </form>
+      </div>
+
+      <div class="filter-section">
+        <h3 class="sidebar-title">Subjects</h3>
+        <div class="filter-divider"></div>
+        {% for subject_value, subject_label in form.subjects.field.choices %}
+          <div class="filter-option">
+            <input type="radio" id="id_subject_{{ forloop.counter0 }}"
+                   name="subjects" value="{{ subject_value }}"
+                   {% if subject_value in form.subjects.value %}checked{% endif %}>
+            <label for="id_subject_{{ forloop.counter0 }}">{{ subject_label }}</label>
+          </div>
+        {% endfor %}
+      </div>
+
+      <button type="submit" class="apply-filters-btn">Apply Filters</button>
+    </form>
+  </div>
+
+  <div class="books-grid">
+    {% for book in books %}
+      <div class="book-card">
+        {% if book.image %}
+          <img src="{{ book.image.url }}" alt="{{ book.title }}" class="book-image">
+        {% else %}
+          <img src="{% static 'Images/book-placeholder.png' %}" alt="{{ book.title }}" class="book-image">
         {% endif %}
-    </div>
+        <div class="book-info">
+          <h3 class="book-title">{{ book.title }}</h3>
+          <div class="book-detail">
+            <strong>Author:</strong>
+            <span>{{ book.author }}</span>
+          </div>
+          <div class="book-detail">
+            <strong>Quantity:</strong>
+            <span>{{ book.quantity }}</span>
+          </div>
+          <div class="book-detail">
+            <strong>Department:</strong>
+            <span>{{ book.department }}</span>
+          </div>
+          <div class="book-detail">
+            <strong>Subject:</strong>
+            <span>{{ book.subject }}</span>
+          </div>
+          <div class="book-action">
+            {% if user.is_librarian %}
+              <form action="{% url 'update_book_details' book.pk %}" method="get">
+                {% csrf_token %}
+                <input type="hidden" name="book" value="{{ book.pk }}">
+                <button type="submit" class="book-btn update-btn">Update Book Details</button>
+              </form>
+            {% else %}
+              <div style="display: flex; gap: 0.5rem;">
+                <form action="{% url 'add_to_cart' book.pk %}" method="post" style="flex: 1;">
+                  {% csrf_token %}
+                  <button type="submit" class="book-btn add-btn">
+                    <i class="fas fa-cart-plus"></i> Add to Cart
+                  </button>
+                </form>
+                <form action="{% url 'book_request' %}" method="post" style="flex: 1;">
+                  {% csrf_token %}
+                  <input type="hidden" name="book" value="{{ book.pk }}">
+                  <button type="submit" class="book-btn take-btn">
+                    <i class="fas fa-book"></i> Take Now
+                  </button>
+                </form>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      {% if no_results and free_books_suggestions %}
+        <!-- Free Books Suggestions Section -->
+        <div class="free-books-section" style="grid-column: 1 / -1; margin-bottom: 2rem;">
+          <div class="free-books-header" style="text-align: center; margin-bottom: 2rem; padding: 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; color: white;">
+            <h2 style="font-size: 2rem; margin-bottom: 1rem;">
+              <i class="fas fa-book-open"></i> Book Not Found in Library
+            </h2>
+            <p style="font-size: 1.2rem; opacity: 0.9;">
+              Don't worry! We found free alternatives for "<strong>{{ search_query }}</strong>"
+            </p>
+          </div>
+          
+          <div class="free-books-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            {% for book in free_books_suggestions.free_books_found %}
+              <div class="free-book-card" style="background: white; border-radius: 15px; padding: 1.5rem; box-shadow: 0 5px 20px rgba(0,0,0,0.1); border: 1px solid #e9ecef; transition: transform 0.3s ease;">
+                <h4 style="color: #2c3e50; margin-bottom: 0.5rem; font-size: 1.1rem;">{{ book.title }}</h4>
+                <p style="color: #666; margin-bottom: 0.5rem; font-size: 0.9rem;">by {{ book.author }}</p>
+                <p style="color: #888; margin-bottom: 1rem; font-size: 0.85rem;">{{ book.description }}</p>
+                <a href="{{ book.url }}" target="_blank" class="free-book-btn" style="display: inline-block; padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: transform 0.2s ease;">
+                  <i class="fas fa-external-link-alt"></i> Read Free on {{ book.platform }}
+                </a>
+              </div>
+            {% endfor %}
+          </div>
+          
+          <div class="platform-links" style="background: #f8f9fa; border-radius: 15px; padding: 2rem;">
+            <h3 style="color: #2c3e50; margin-bottom: 1.5rem; text-align: center;">
+              <i class="fas fa-globe"></i> Search More Free Platforms
+            </h3>
+            <div class="platforms-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+              {% for platform in free_books_suggestions.platform_links %}
+                <a href="{{ platform.url }}" target="_blank" class="platform-link" style="display: block; padding: 1rem; background: white; border-radius: 10px; text-decoration: none; color: #2c3e50; border: 1px solid #e9ecef; transition: all 0.3s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                  <h4 style="margin: 0 0 0.5rem 0; color: #667eea; font-size: 1rem;">{{ platform.name }}</h4>
+                  <p style="margin: 0; font-size: 0.85rem; color: #666;">{{ platform.description }}</p>
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <p>No books found with selected filters.</p>
+        </div>
+      {% endif %}
+    {% endfor %}
+
+    {% if user.is_librarian %}
+      <div class="book-card">
+        <img src="{% static 'Images/addbook.png' %}" alt="Add Book" class="book-image">
+        <div class="book-info">
+          <h3 class="book-title">Add New Book</h3>
+          <div class="book-detail">
+            <em>Click below to add a new book to the library</em>
+          </div>
+          <div class="book-action">
+            <form action="{% url 'add_new_book' %}" method="post">
+              {% csrf_token %}
+              <button type="submit" class="book-btn add-btn">Add Book</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

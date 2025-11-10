@@ -1,0 +1,188 @@
+{% extends 'libapp/base.html' %}
+{% block title %}Analytics Dashboard - ReadOps{% endblock %}
+{% block content %}
+{% load static %}
+
+<style>
+    .analytics-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .analytics-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 2rem;
+        text-align: center;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+    }
+
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .analytics-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+    }
+
+    .analytics-card h3 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 0.5rem;
+    }
+
+    .metric-label {
+        color: #666;
+        font-size: 1.1rem;
+    }
+
+    .health-score {
+        background: linear-gradient(135deg, #4caf50, #8bc34a);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        text-align: center;
+    }
+
+    .health-score .score {
+        font-size: 4rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .trending-books {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .trending-book {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .trending-book:last-child {
+        border-bottom: none;
+    }
+
+    .overdue-item {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .overdue-item h4 {
+        color: #856404;
+        margin-bottom: 0.5rem;
+    }
+
+    .overdue-item p {
+        color: #856404;
+        margin: 0;
+    }
+</style>
+
+<div class="analytics-container">
+    <div class="analytics-header">
+        <h1><i class="fas fa-chart-line"></i> Library Analytics Dashboard</h1>
+        <p>Comprehensive insights into library operations and user behavior</p>
+    </div>
+
+    <div class="analytics-grid">
+        <!-- Library Health Score -->
+        <div class="analytics-card health-score">
+            <h3><i class="fas fa-heartbeat"></i> Library Health Score</h3>
+            <div class="score">{{ library_health.health_score }}%</div>
+            <p>Overall Library Performance</p>
+        </div>
+
+        <!-- Borrowing Trends -->
+        <div class="analytics-card">
+            <h3><i class="fas fa-trending-up"></i> Borrowing Trends</h3>
+            <div class="metric-value">{{ borrowing_trends.total_borrowed_books }}</div>
+            <div class="metric-label">Total Borrowed Books</div>
+            <div class="metric-value">{{ borrowing_trends.avg_books_per_user }}</div>
+            <div class="metric-label">Average Books per User</div>
+            <div class="metric-value">{{ borrowing_trends.active_borrowers }}</div>
+            <div class="metric-label">Active Borrowers</div>
+        </div>
+
+        <!-- Overdue Analysis -->
+        <div class="analytics-card">
+            <h3><i class="fas fa-exclamation-triangle"></i> Overdue Analysis</h3>
+            <div class="metric-value">{{ overdue_analysis.overdue_count }}</div>
+            <div class="metric-label">Overdue Books</div>
+            <div class="metric-value">${{ overdue_analysis.total_fine_amount }}</div>
+            <div class="metric-label">Total Fine Amount</div>
+            <div class="metric-value">{{ overdue_analysis.pending_fines_count }}</div>
+            <div class="metric-label">Pending Fines</div>
+        </div>
+
+        <!-- Library Statistics -->
+        <div class="analytics-card">
+            <h3><i class="fas fa-book"></i> Library Statistics</h3>
+            <div class="metric-value">{{ library_health.total_books }}</div>
+            <div class="metric-label">Total Books</div>
+            <div class="metric-value">{{ library_health.available_books }}</div>
+            <div class="metric-label">Available Books</div>
+            <div class="metric-value">{{ library_health.borrowed_books }}</div>
+            <div class="metric-label">Currently Borrowed</div>
+        </div>
+    </div>
+
+    <!-- Most Popular Books -->
+    {% if borrowing_trends.most_popular_books %}
+    <div class="analytics-card">
+        <h3><i class="fas fa-star"></i> Most Popular Books</h3>
+        <div class="trending-books">
+            {% for book_title, count in borrowing_trends.most_popular_books %}
+            <div class="trending-book">
+                <span><strong>{{ book_title }}</strong></span>
+                <span class="badge badge-primary">{{ count }} borrows</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Overdue Books Details -->
+    {% if overdue_analysis.overdue_books %}
+    <div class="analytics-card">
+        <h3><i class="fas fa-clock"></i> Overdue Books Details</h3>
+        {% for overdue in overdue_analysis.overdue_books %}
+        <div class="overdue-item">
+            <h4>{{ overdue.book_title }}</h4>
+            <p><strong>User:</strong> {{ overdue.user }} | 
+               <strong>Days Overdue:</strong> {{ overdue.days_overdue }} | 
+               <strong>Due Date:</strong> {{ overdue.end_date }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,416 @@
+{% extends 'libapp/base.html' %}
+{% block title %}{{ book.title }} - ReadOps{% endblock %}
+{% block content %}
+{% load static %}
+
+<style>
+    .book-detail-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .book-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .book-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("{% static 'Images/Background.jpg' %}") center/cover;
+        opacity: 0.1;
+        z-index: 0;
+    }
+
+    .book-header-content {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 2rem;
+        align-items: center;
+    }
+
+    .book-cover-large {
+        width: 200px;
+        height: 280px;
+        background: white;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .book-cover-large img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 10px;
+    }
+
+    .book-cover-large .default-cover {
+        font-size: 4rem;
+        color: #667eea;
+    }
+
+    .book-info h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .book-info .author {
+        font-size: 1.3rem;
+        opacity: 0.9;
+        margin-bottom: 1rem;
+    }
+
+    .book-meta {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .meta-badge {
+        background: rgba(255,255,255,0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .book-description {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+
+    .book-description h3 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+    }
+
+    .book-description p {
+        color: #666;
+        line-height: 1.6;
+        font-size: 1.1rem;
+    }
+
+    .pricing-section {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+
+    .pricing-section h3 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+    }
+
+    .pricing-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .pricing-card {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .pricing-card:hover {
+        border-color: #667eea;
+        transform: translateY(-2px);
+    }
+
+    .pricing-card.featured {
+        border-color: #667eea;
+        background: linear-gradient(135deg, #f8f9ff, #e8f0ff);
+    }
+
+    .pricing-card h4 {
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .pricing-card .price {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 1rem;
+    }
+
+    .pricing-card .price.free {
+        color: #28a745;
+    }
+
+    .pricing-card ul {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 1.5rem;
+    }
+
+    .pricing-card li {
+        color: #666;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .pricing-card li i {
+        color: #28a745;
+    }
+
+    .access-status {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .access-status h4 {
+        color: #155724;
+        margin-bottom: 0.5rem;
+    }
+
+    .access-status p {
+        color: #155724;
+        margin: 0;
+    }
+
+    .btn {
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #218838;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-info {
+        background: #17a2b8;
+        color: white;
+    }
+
+    .btn-info:hover {
+        background: #138496;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    @media (max-width: 768px) {
+        .book-header-content {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+        
+        .book-cover-large {
+            margin: 0 auto;
+        }
+        
+        .pricing-options {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="book-detail-container">
+    <div class="book-header">
+        <div class="book-header-content">
+            <div class="book-cover-large">
+                {% if book.cover_image %}
+                    <img src="{{ book.cover_image.url }}" alt="{{ book.title }}">
+                {% else %}
+                    <div class="default-cover">
+                        <i class="fas fa-book"></i>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="book-info">
+                <h1>{{ book.title }}</h1>
+                <p class="author">by {{ book.author }}</p>
+                
+                <div class="book-meta">
+                    <span class="meta-badge">{{ book.get_book_type_display }}</span>
+                    <span class="meta-badge">{{ book.category }}</span>
+                    {% if book.is_free %}
+                        <span class="meta-badge" style="background: #28a745;">FREE</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Access Status -->
+    {% if has_valid_access %}
+    <div class="access-status">
+        <h4><i class="fas fa-check-circle"></i> You have active access to this book!</h4>
+        <p>Your access is valid until {{ user_access.access_end_date|date:"F d, Y H:i" }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Book Description -->
+    <div class="book-description">
+        <h3><i class="fas fa-info-circle"></i> About This Book</h3>
+        <p>{{ book.description }}</p>
+    </div>
+
+    <!-- Pricing and Access Options -->
+    <div class="pricing-section">
+        <h3><i class="fas fa-credit-card"></i> Access Options</h3>
+        
+        {% if book.is_free %}
+            <div class="pricing-options">
+                <div class="pricing-card featured">
+                    <h4>Free Access</h4>
+                    <div class="price free">FREE</div>
+                    <ul>
+                        <li><i class="fas fa-check"></i> Online reading access</li>
+                        <li><i class="fas fa-check"></i> Download PDF/Word</li>
+                        <li><i class="fas fa-check"></i> No time limit</li>
+                    </ul>
+                    <form method="POST" action="{% url 'create_payment_request' book.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="access_type" value="ONLINE_READING">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-book-open"></i> Get Free Access
+                        </button>
+                    </form>
+                </div>
+            </div>
+        {% else %}
+            <div class="pricing-options">
+                <div class="pricing-card">
+                    <h4>Online Reading</h4>
+                    <div class="price">₹{{ book.online_reading_price }}</div>
+                    <ul>
+                        <li><i class="fas fa-check"></i> Read online for 5 days</li>
+                        <li><i class="fas fa-check"></i> Mobile-friendly reader</li>
+                        <li><i class="fas fa-check"></i> Bookmark pages</li>
+                        <li><i class="fas fa-times"></i> No download access</li>
+                    </ul>
+                    <form method="POST" action="{% url 'create_payment_request' book.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="access_type" value="ONLINE_READING">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-book-open"></i> Read Online
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="pricing-card featured">
+                    <h4>Download Access</h4>
+                    <div class="price">₹{{ book.download_price }}</div>
+                    <ul>
+                        <li><i class="fas fa-check"></i> Download PDF & Word</li>
+                        <li><i class="fas fa-check"></i> Keep forever</li>
+                        <li><i class="fas fa-check"></i> Offline reading</li>
+                        <li><i class="fas fa-check"></i> Print friendly</li>
+                    </ul>
+                    <form method="POST" action="{% url 'create_payment_request' book.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="access_type" value="DOWNLOAD">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Current Access Actions -->
+    {% if has_valid_access %}
+    <div class="pricing-section">
+        <h3><i class="fas fa-book-open"></i> Your Access</h3>
+        <div class="pricing-options">
+            {% if user_access.access_type == 'ONLINE_READING' %}
+            <div class="pricing-card featured">
+                <h4>Read Online</h4>
+                <p>Access your online reading experience</p>
+                <a href="{% url 'online_reader' book.id %}" class="btn btn-success">
+                    <i class="fas fa-book-open"></i> Continue Reading
+                </a>
+            </div>
+            {% elif user_access.access_type == 'DOWNLOAD' %}
+            <div class="pricing-card featured">
+                <h4>Download Files</h4>
+                <p>Download your purchased files</p>
+                <div style="display: flex; gap: 0.5rem;">
+                    {% if book.pdf_file %}
+                    <a href="{% url 'download_book' book.id %}?type=pdf" class="btn btn-info" style="flex: 1;">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </a>
+                    {% endif %}
+                    {% if book.word_file %}
+                    <a href="{% url 'download_book' book.id %}?type=word" class="btn btn-info" style="flex: 1;">
+                        <i class="fas fa-file-word"></i> Word
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

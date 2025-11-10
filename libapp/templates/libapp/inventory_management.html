@@ -1,0 +1,327 @@
+{% extends 'libapp/base.html' %}
+{% block title %}Inventory Management - ReadOps{% endblock %}
+{% block content %}
+{% load static %}
+
+<style>
+    .inventory-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .inventory-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 2rem;
+        text-align: center;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+    }
+
+    .inventory-grid {
+        display: grid;
+        gap: 2rem;
+    }
+
+    .inventory-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+    }
+
+    .inventory-card h3 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .book-list {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .book-item {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        border: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .book-info h4 {
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .book-info p {
+        color: #666;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    .book-stats {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .stock-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .stock-low {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .stock-out {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .stock-good {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .priority-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+
+    .priority-high {
+        background: #ff6b6b;
+        color: white;
+    }
+
+    .priority-medium {
+        background: #ffa726;
+        color: white;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-warning {
+        background: #ffc107;
+        color: #212529;
+    }
+
+    .btn-warning:hover {
+        background: #e0a800;
+        color: #212529;
+        text-decoration: none;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #666;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: #ddd;
+        margin-bottom: 1rem;
+    }
+
+    .summary-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+</style>
+
+<div class="inventory-container">
+    <div class="inventory-header">
+        <h1><i class="fas fa-warehouse"></i> Inventory Management</h1>
+        <p>Advanced inventory tracking and restock recommendations</p>
+    </div>
+
+    <!-- Summary Statistics -->
+    <div class="summary-stats">
+        <div class="stat-card">
+            <div class="stat-value">{{ low_stock_books|length }}</div>
+            <div class="stat-label">Low Stock Books</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ out_of_stock_books|length }}</div>
+            <div class="stat-label">Out of Stock</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ restock_suggestions|length }}</div>
+            <div class="stat-label">Restock Suggestions</div>
+        </div>
+    </div>
+
+    <div class="inventory-grid">
+        <!-- Low Stock Books -->
+        <div class="inventory-card">
+            <h3><i class="fas fa-exclamation-triangle"></i> Low Stock Books</h3>
+            {% if low_stock_books %}
+                <div class="book-list">
+                    {% for book in low_stock_books %}
+                    <div class="book-item">
+                        <div class="book-info">
+                            <h4>{{ book.title }}</h4>
+                            <p><strong>Author:</strong> {{ book.author }} | <strong>Subject:</strong> {{ book.subject }}</p>
+                        </div>
+                        <div class="book-stats">
+                            <span class="stock-badge stock-low">{{ book.quantity }} left</span>
+                            <div class="action-buttons">
+                                <a href="{% url 'update_book_details' book.id %}" class="btn btn-warning">
+                                    <i class="fas fa-edit"></i> Update
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>All Books Well Stocked</h3>
+                    <p>No books are running low on stock!</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Out of Stock Books -->
+        <div class="inventory-card">
+            <h3><i class="fas fa-times-circle"></i> Out of Stock Books</h3>
+            {% if out_of_stock_books %}
+                <div class="book-list">
+                    {% for book in out_of_stock_books %}
+                    <div class="book-item">
+                        <div class="book-info">
+                            <h4>{{ book.title }}</h4>
+                            <p><strong>Author:</strong> {{ book.author }} | <strong>Subject:</strong> {{ book.subject }}</p>
+                        </div>
+                        <div class="book-stats">
+                            <span class="stock-badge stock-out">Out of Stock</span>
+                            <div class="action-buttons">
+                                <a href="{% url 'update_book_details' book.id %}" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Restock
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>All Books Available</h3>
+                    <p>No books are currently out of stock!</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Restock Suggestions -->
+        <div class="inventory-card">
+            <h3><i class="fas fa-lightbulb"></i> Smart Restock Suggestions</h3>
+            {% if restock_suggestions %}
+                <div class="book-list">
+                    {% for suggestion in restock_suggestions %}
+                    <div class="book-item">
+                        <div class="book-info">
+                            <h4>{{ suggestion.book.title }}</h4>
+                            <p><strong>Author:</strong> {{ suggestion.book.author }} | <strong>Subject:</strong> {{ suggestion.book.subject }}</p>
+                            <p><strong>Currently Borrowed:</strong> {{ suggestion.borrowed_count }} copies</p>
+                        </div>
+                        <div class="book-stats">
+                            <span class="stock-badge stock-low">{{ suggestion.current_stock }} in stock</span>
+                            <span class="priority-badge priority-{{ suggestion.priority|lower }}">{{ suggestion.priority }}</span>
+                            <div class="action-buttons">
+                                <a href="{% url 'update_book_details' suggestion.book.id %}" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Restock
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>No Restock Needed</h3>
+                    <p>All books have adequate stock levels!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Inventory Tips -->
+    <div class="inventory-card" style="margin-top: 2rem;">
+        <h3><i class="fas fa-info-circle"></i> Inventory Management Tips</h3>
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-top: 1rem;">
+            <p><strong>📊 Monitor Regularly:</strong> Check inventory levels weekly to prevent stockouts.</p>
+            <p><strong>🔄 Restock Smart:</strong> Focus on high-demand books first.</p>
+            <p><strong>📈 Track Trends:</strong> Use borrowing patterns to predict future demand.</p>
+            <p><strong>⚡ Quick Actions:</strong> Use the update buttons to quickly adjust stock levels.</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

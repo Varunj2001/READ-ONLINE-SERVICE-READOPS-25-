@@ -1,0 +1,490 @@
+{% extends 'libapp/base.html' %}
+{% load static %}
+{% block title %}User Details - ReadOps Library{% endblock %}
+
+{% block content %}
+<style>
+    .user-details-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+
+    .scan-header {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .scan-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
+
+    .scan-info {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+
+    .scan-badge {
+        background: rgba(255,255,255,0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-weight: 600;
+    }
+
+    .user-info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .info-card {
+        background: #f8f9fa;
+        padding: 2rem;
+        border-radius: 15px;
+        border: 1px solid #e9ecef;
+    }
+
+    .info-card h3 {
+        color: #333;
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #333;
+        min-width: 120px;
+    }
+
+    .info-value {
+        color: #666;
+        flex: 1;
+        text-align: right;
+    }
+
+    .books-section {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid #e9ecef;
+    }
+
+    .books-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .book-card {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 10px;
+        border: 1px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+    .book-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .book-title {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .book-author {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .book-dates {
+        font-size: 0.8rem;
+        color: #666;
+    }
+
+    .overdue {
+        color: #dc3545;
+        font-weight: 600;
+    }
+
+    .recent-scans {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        border: 1px solid #e9ecef;
+    }
+
+    .scan-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .scan-item:hover {
+        background: #f8f9fa;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .scan-info-left {
+        flex: 1;
+    }
+
+    .scan-type {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.25rem;
+    }
+
+    .scan-details {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .scan-time {
+        color: #666;
+        font-size: 0.9rem;
+        text-align: right;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #218838;
+        transform: translateY(-3px);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-info {
+        background: #17a2b8;
+        color: white;
+    }
+
+    .btn-info:hover {
+        background: #138496;
+        transform: translateY(-3px);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-3px);
+        color: white;
+        text-decoration: none;
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-success {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-warning {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-danger {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-info {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    @media (max-width: 768px) {
+        .user-details-container {
+            margin: 1rem;
+            padding: 1rem;
+        }
+
+        .user-info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .scan-header h1 {
+            font-size: 2rem;
+        }
+
+        .scan-info {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .info-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .info-value {
+            text-align: left;
+        }
+    }
+</style>
+
+<div class="user-details-container">
+    <div class="scan-header">
+        <h1><i class="fas fa-user-check"></i> User Details</h1>
+        <p>QR Code scan successful - User information retrieved</p>
+        <div class="scan-info">
+            <div class="scan-badge">
+                <i class="fas fa-clock"></i> {{ scan_log.scan_timestamp|date:"M d, Y H:i" }}
+            </div>
+            <div class="scan-badge">
+                <i class="fas fa-map-marker-alt"></i> {{ scan_log.location|default:"No location" }}
+            </div>
+            <div class="scan-badge">
+                <i class="fas fa-user-tag"></i> {{ scan_log.get_scan_type_display }}
+            </div>
+        </div>
+    </div>
+
+    <div class="user-info-grid">
+        <div class="info-card">
+            <h3><i class="fas fa-user"></i> Personal Information</h3>
+            <div class="info-row">
+                <span class="info-label">Username:</span>
+                <span class="info-value">{{ scanned_user.username }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Full Name:</span>
+                <span class="info-value">{{ scanned_user.first_name }} {{ scanned_user.last_name }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Email:</span>
+                <span class="info-value">{{ scanned_user.email }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Phone:</span>
+                <span class="info-value">{{ scanned_user.phone }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">User Type:</span>
+                <span class="info-value">
+                    {% if scanned_user.is_librarian %}
+                        <span class="status-badge status-info">Librarian</span>
+                    {% else %}
+                        <span class="status-badge status-success">Member</span>
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <h3><i class="fas fa-calendar-alt"></i> Account Information</h3>
+            <div class="info-row">
+                <span class="info-label">Member Since:</span>
+                <span class="info-value">{{ scanned_user.date_joined|date:"M d, Y" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Last Login:</span>
+                <span class="info-value">{{ scanned_user.last_login|date:"M d, Y H:i"|default:"Never" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Account Status:</span>
+                <span class="info-value">
+                    {% if scanned_user.is_active %}
+                        <span class="status-badge status-success">Active</span>
+                    {% else %}
+                        <span class="status-badge status-danger">Inactive</span>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Staff Status:</span>
+                <span class="info-value">
+                    {% if scanned_user.is_staff %}
+                        <span class="status-badge status-info">Staff</span>
+                    {% else %}
+                        <span class="status-badge status-warning">Regular User</span>
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    {% if borrowed_books %}
+    <div class="books-section">
+        <h3><i class="fas fa-book"></i> Currently Borrowed Books ({{ borrowed_books|length }})</h3>
+        <div class="books-grid">
+            {% for book_info in borrowed_books %}
+            <div class="book-card">
+                <div class="book-title">{{ book_info.book.title }}</div>
+                <div class="book-author">by {{ book_info.book.author }}</div>
+                <div class="book-dates">
+                    <div><strong>Borrowed:</strong> {{ book_info.borrow_date|date:"M d, Y" }}</div>
+                    <div><strong>Due:</strong> 
+                        <span class="{% if book_info.is_overdue %}overdue{% endif %}">
+                            {{ book_info.due_date|date:"M d, Y" }}
+                        </span>
+                    </div>
+                    {% if book_info.is_overdue %}
+                        <div class="overdue">⚠️ Overdue</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="books-section">
+        <h3><i class="fas fa-book"></i> Currently Borrowed Books</h3>
+        <p style="text-align: center; color: #666; padding: 2rem;">
+            <i class="fas fa-book-open" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+            No books currently borrowed
+        </p>
+    </div>
+    {% endif %}
+
+    {% if recent_scans %}
+    <div class="recent-scans">
+        <h3><i class="fas fa-history"></i> Recent Scan History</h3>
+        {% for scan in recent_scans %}
+        <div class="scan-item">
+            <div class="scan-info-left">
+                <div class="scan-type">{{ scan.get_scan_type_display }}</div>
+                <div class="scan-details">
+                    Scanned by {{ scan.scanned_by.username }}
+                    {% if scan.location %} • {{ scan.location }}{% endif %}
+                    {% if scan.notes %} • {{ scan.notes }}{% endif %}
+                </div>
+            </div>
+            <div class="scan-time">
+                {{ scan.scan_timestamp|date:"M d, Y" }}<br>
+                {{ scan.scan_timestamp|time:"H:i" }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="action-buttons">
+        <a href="{% url 'qr_scanner' %}" class="btn btn-primary">
+            <i class="fas fa-qrcode"></i> Scan Another QR Code
+        </a>
+        <a href="{% url 'user_scan_history' scanned_user.id %}" class="btn btn-info">
+            <i class="fas fa-history"></i> View Full History
+        </a>
+        <a href="{% url 'qr_tracking_dashboard' %}" class="btn btn-success">
+            <i class="fas fa-chart-bar"></i> Tracking Dashboard
+        </a>
+        <button onclick="window.close()" class="btn btn-secondary">
+            <i class="fas fa-times"></i> Close Window
+        </button>
+    </div>
+</div>
+
+<script>
+// Auto-close window after 30 seconds if no interaction
+let autoCloseTimer = setTimeout(() => {
+    if (confirm('This window will close automatically. Do you want to keep it open?')) {
+        clearTimeout(autoCloseTimer);
+    } else {
+        window.close();
+    }
+}, 30000);
+
+// Clear timer on any user interaction
+document.addEventListener('click', () => {
+    clearTimeout(autoCloseTimer);
+});
+
+document.addEventListener('keypress', () => {
+    clearTimeout(autoCloseTimer);
+});
+</script>
+{% endblock %}

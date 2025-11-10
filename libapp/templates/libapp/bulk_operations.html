@@ -1,0 +1,738 @@
+{% extends 'libapp/base.html' %}
+{% block title %}Bulk Operations - ReadOps Library{% endblock %}
+{% block content %}
+{% load static %}
+
+<style>
+    .bulk-operations {
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .page-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        font-weight: 700;
+    }
+
+    .page-header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+
+    .operations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .operation-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+        border: 1px solid #e9ecef;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .operation-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 1.5rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .card-header h3 {
+        color: #333;
+        font-size: 1.5rem;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .card-content {
+        padding: 2rem;
+    }
+
+    .operation-description {
+        color: #666;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .operation-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        text-align: center;
+    }
+
+    .btn-primary {
+        background: #667eea;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #5a67d8;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #218838;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-warning {
+        background: #ffc107;
+        color: #212529;
+    }
+
+    .btn-warning:hover {
+        background: #e0a800;
+        color: #212529;
+        text-decoration: none;
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #c82333;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-info {
+        background: #17a2b8;
+        color: white;
+    }
+
+    .btn-info:hover {
+        background: #138496;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+        color: white;
+        text-decoration: none;
+    }
+
+    .progress-section {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .progress-header {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .progress-header h3 {
+        color: #333;
+        font-size: 1.5rem;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .progress-content {
+        padding: 2rem;
+    }
+
+    .progress-bar {
+        background: #e9ecef;
+        border-radius: 10px;
+        height: 20px;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .progress-text {
+        color: #666;
+        font-size: 0.9rem;
+        text-align: center;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        text-align: center;
+        border: 1px solid #e9ecef;
+    }
+
+    .stat-icon {
+        font-size: 2rem;
+        color: #667eea;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 5% auto;
+        padding: 2rem;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        color: #333;
+    }
+
+    .close {
+        color: #aaa;
+        font-size: 2rem;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close:hover {
+        color: #333;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+    }
+
+    @media (max-width: 768px) {
+        .bulk-operations {
+            padding: 1rem;
+        }
+
+        .page-header {
+            padding: 2rem 1rem;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+        }
+
+        .operations-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .modal-content {
+            margin: 10% auto;
+            width: 95%;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="bulk-operations">
+    <div class="page-header">
+        <h1><i class="fas fa-tasks"></i> Bulk Operations</h1>
+        <p>Perform multiple library operations efficiently with bulk actions</p>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-number">{{ total_users }}</div>
+            <div class="stat-label">Total Users</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-book"></i>
+            </div>
+            <div class="stat-number">{{ total_books }}</div>
+            <div class="stat-label">Total Books</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-bell"></i>
+            </div>
+            <div class="stat-number">{{ total_notifications }}</div>
+            <div class="stat-label">Notifications</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-number">{{ pending_operations }}</div>
+            <div class="stat-label">Pending Operations</div>
+        </div>
+    </div>
+
+    <!-- Bulk Operations Grid -->
+    <div class="operations-grid">
+        <!-- User Management -->
+        <div class="operation-card">
+            <div class="card-header">
+                <h3><i class="fas fa-users"></i> User Management</h3>
+            </div>
+            <div class="card-content">
+                <div class="operation-description">
+                    Manage multiple users at once. Send notifications, update profiles, or perform bulk user operations.
+                </div>
+                <div class="operation-actions">
+                    <button class="btn btn-primary" onclick="openModal('userModal')">
+                        <i class="fas fa-envelope"></i> Send Bulk Notifications
+                    </button>
+                    <button class="btn btn-success" onclick="openModal('userUpdateModal')">
+                        <i class="fas fa-edit"></i> Bulk Update Users
+                    </button>
+                    <button class="btn btn-info" onclick="openModal('userExportModal')">
+                        <i class="fas fa-download"></i> Export User Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Book Management -->
+        <div class="operation-card">
+            <div class="card-header">
+                <h3><i class="fas fa-book"></i> Book Management</h3>
+            </div>
+            <div class="card-content">
+                <div class="operation-description">
+                    Perform bulk operations on books. Update details, manage inventory, or process book-related tasks.
+                </div>
+                <div class="operation-actions">
+                    <button class="btn btn-primary" onclick="openModal('bookUpdateModal')">
+                        <i class="fas fa-edit"></i> Bulk Update Books
+                    </button>
+                    <button class="btn btn-success" onclick="openModal('bookImportModal')">
+                        <i class="fas fa-upload"></i> Import Books
+                    </button>
+                    <button class="btn btn-warning" onclick="openModal('bookInventoryModal')">
+                        <i class="fas fa-warehouse"></i> Update Inventory
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Management -->
+        <div class="operation-card">
+            <div class="card-header">
+                <h3><i class="fas fa-bell"></i> Notification Management</h3>
+            </div>
+            <div class="card-content">
+                <div class="operation-description">
+                    Send bulk notifications, manage notification settings, or perform notification-related bulk operations.
+                </div>
+                <div class="operation-actions">
+                    <button class="btn btn-primary" onclick="openModal('notificationModal')">
+                        <i class="fas fa-paper-plane"></i> Send Bulk Notifications
+                    </button>
+                    <button class="btn btn-success" onclick="openModal('notificationSettingsModal')">
+                        <i class="fas fa-cog"></i> Update Notification Settings
+                    </button>
+                    <button class="btn btn-secondary" onclick="openModal('notificationCleanupModal')">
+                        <i class="fas fa-trash"></i> Cleanup Notifications
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Operations -->
+        <div class="operation-card">
+            <div class="card-header">
+                <h3><i class="fas fa-cogs"></i> System Operations</h3>
+            </div>
+            <div class="card-content">
+                <div class="operation-description">
+                    Perform system-wide operations like data cleanup, maintenance tasks, or system optimizations.
+                </div>
+                <div class="operation-actions">
+                    <button class="btn btn-warning" onclick="openModal('maintenanceModal')">
+                        <i class="fas fa-tools"></i> System Maintenance
+                    </button>
+                    <button class="btn btn-info" onclick="openModal('backupModal')">
+                        <i class="fas fa-database"></i> Backup Data
+                    </button>
+                    <button class="btn btn-danger" onclick="openModal('cleanupModal')">
+                        <i class="fas fa-broom"></i> Data Cleanup
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports & Analytics -->
+        <div class="operation-card">
+            <div class="card-header">
+                <h3><i class="fas fa-chart-bar"></i> Reports & Analytics</h3>
+            </div>
+            <div class="card-content">
+                <div class="operation-description">
+                    Generate comprehensive reports, export data, or perform analytics operations across the library system.
+                </div>
+                <div class="operation-actions">
+                    <button class="btn btn-primary" onclick="openModal('reportModal')">
+                        <i class="fas fa-file-alt"></i> Generate Reports
+                    </button>
+                    <button class="btn btn-success" onclick="openModal('analyticsModal')">
+                        <i class="fas fa-chart-line"></i> Run Analytics
+                    </button>
+                    <button class="btn btn-info" onclick="openModal('exportModal')">
+                        <i class="fas fa-download"></i> Export Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security & Access -->
+        <div class="operation-card">
+            <div class="card-header">
+                <h3><i class="fas fa-shield-alt"></i> Security & Access</h3>
+            </div>
+            <div class="card-content">
+                <div class="operation-description">
+                    Manage user access, security settings, and perform security-related bulk operations.
+                </div>
+                <div class="operation-actions">
+                    <button class="btn btn-warning" onclick="openModal('accessModal')">
+                        <i class="fas fa-key"></i> Manage Access
+                    </button>
+                    <button class="btn btn-danger" onclick="openModal('securityModal')">
+                        <i class="fas fa-lock"></i> Security Settings
+                    </button>
+                    <button class="btn btn-secondary" onclick="openModal('auditModal')">
+                        <i class="fas fa-search"></i> Audit Logs
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Tracking -->
+    <div class="progress-section">
+        <div class="progress-header">
+            <h3><i class="fas fa-chart-line"></i> Operation Progress</h3>
+        </div>
+        <div class="progress-content">
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%" id="progressFill">0%</div>
+            </div>
+            <div class="progress-text" id="progressText">No operations in progress</div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<!-- User Notification Modal -->
+<div id="userModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Send Bulk Notifications</h3>
+            <span class="close" onclick="closeModal('userModal')">&times;</span>
+        </div>
+        <form id="userNotificationForm">
+            <div class="form-group">
+                <label for="userSelection">Select Users</label>
+                <select id="userSelection" multiple>
+                    <option value="all">All Users</option>
+                    <option value="active">Active Users Only</option>
+                    <option value="inactive">Inactive Users Only</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="notificationType">Notification Type</label>
+                <select id="notificationType">
+                    <option value="general">General Notification</option>
+                    <option value="reminder">Reminder</option>
+                    <option value="announcement">Announcement</option>
+                    <option value="warning">Warning</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="notificationMessage">Message</label>
+                <textarea id="notificationMessage" rows="4" placeholder="Enter your message here..."></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('userModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Send Notifications</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Book Update Modal -->
+<div id="bookUpdateModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Bulk Update Books</h3>
+            <span class="close" onclick="closeModal('bookUpdateModal')">&times;</span>
+        </div>
+        <form id="bookUpdateForm">
+            <div class="form-group">
+                <label for="bookSelection">Select Books</label>
+                <select id="bookSelection" multiple>
+                    <option value="all">All Books</option>
+                    <option value="category">By Category</option>
+                    <option value="author">By Author</option>
+                    <option value="status">By Status</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="updateField">Update Field</label>
+                <select id="updateField">
+                    <option value="category">Category</option>
+                    <option value="author">Author</option>
+                    <option value="price">Price</option>
+                    <option value="status">Status</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="updateValue">New Value</label>
+                <input type="text" id="updateValue" placeholder="Enter new value">
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('bookUpdateModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Update Books</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- System Maintenance Modal -->
+<div id="maintenanceModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>System Maintenance</h3>
+            <span class="close" onclick="closeModal('maintenanceModal')">&times;</span>
+        </div>
+        <form id="maintenanceForm">
+            <div class="form-group">
+                <label for="maintenanceType">Maintenance Type</label>
+                <select id="maintenanceType">
+                    <option value="database">Database Optimization</option>
+                    <option value="cache">Cache Clear</option>
+                    <option value="logs">Log Cleanup</option>
+                    <option value="files">File Cleanup</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="maintenanceSchedule">Schedule</label>
+                <select id="maintenanceSchedule">
+                    <option value="immediate">Run Immediately</option>
+                    <option value="scheduled">Schedule for Later</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('maintenanceModal')">Cancel</button>
+                <button type="submit" class="btn btn-warning">Run Maintenance</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openModal(modalId) {
+    document.getElementById(modalId).style.display = 'block';
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+}
+
+// Form submissions
+document.getElementById('userNotificationForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    simulateProgress();
+    closeModal('userModal');
+});
+
+document.getElementById('bookUpdateForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    simulateProgress();
+    closeModal('bookUpdateModal');
+});
+
+document.getElementById('maintenanceForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    simulateProgress();
+    closeModal('maintenanceModal');
+});
+
+function simulateProgress() {
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    let progress = 0;
+    
+    const interval = setInterval(() => {
+        progress += 10;
+        progressFill.style.width = progress + '%';
+        progressFill.textContent = progress + '%';
+        
+        if (progress < 50) {
+            progressText.textContent = 'Processing request...';
+        } else if (progress < 80) {
+            progressText.textContent = 'Executing operation...';
+        } else if (progress < 100) {
+            progressText.textContent = 'Finalizing...';
+        } else {
+            progressText.textContent = 'Operation completed successfully!';
+            clearInterval(interval);
+            
+            // Reset after 3 seconds
+            setTimeout(() => {
+                progressFill.style.width = '0%';
+                progressFill.textContent = '0%';
+                progressText.textContent = 'No operations in progress';
+            }, 3000);
+        }
+    }, 200);
+}
+</script>
+
+{% endblock %}

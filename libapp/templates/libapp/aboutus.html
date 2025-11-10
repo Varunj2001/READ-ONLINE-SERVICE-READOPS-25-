@@ -1,93 +1,553 @@
-{% extends 'libapp/base.html' %} {% comment %} title {% endcomment %}
- {% block title%}About Us{%endblock %} {% comment %} content {% endcomment %} 
- {% block content %} {% load static %}
- <div class="aboutUsPage">
-    <div class="aboutus">
-        <h1>About Us</h1>
-        <p align = "justify">ReadOps is a cutting-edge library management system designed to revolutionize the way libraries function, ensuring seamless organization, efficient operations, and enhanced user experiences. In today's fast-paced world, libraries need a comprehensive and user-friendly solution to manage their resources effectively. ReadOps is the answer to the ever-evolving needs of libraries, empowering them to deliver exceptional services to their patrons..</p>
-        <p align = "justify">In the digital age, where technology has transformed various aspects of our lives, libraries also need to adapt and embrace modern solutions to efficiently manage their resources and services. One such powerful tool is "ReadOps," a comprehensive library management system designed to streamline and enhance library operations. ReadOps is more than just a traditional cataloging software; it is a robust and user-friendly platform that empowers librarians and library staff to deliver a seamless experience to their users.</p>
-        <p align = "justify">ReadOps represents the future of library management systems, catering to the needs of modern libraries and their tech-savvy patrons. With its seamless integration of traditional and digital resources, user-centric approach, and data-driven insights, ReadOps empowers libraries to provide exceptional services and remain relevant in an increasingly digital world. Embracing ReadOps is a step towards creating vibrant and dynamic libraries that continue to enrich communities and promote knowledge dissemination.</p>
+{% extends 'libapp/base.html' %}
+{% block title %}About Us - ReadOps Library{% endblock %}
+{% block content %}
+{% load static %}
+
+<style>
+    .about-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4rem 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .about-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("{% static 'Images/Background.jpg' %}") center/cover;
+        opacity: 0.1;
+        z-index: 0;
+    }
+
+    .about-hero-content {
+        position: relative;
+        z-index: 1;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .about-hero h1 {
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .about-hero p {
+        font-size: 1.3rem;
+        opacity: 0.9;
+        margin-bottom: 2rem;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        padding: 4rem 2rem;
+        background: #f8f9fa;
+    }
+
+    .feature-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid #e9ecef;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+
+    .feature-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #667eea;
+    }
+
+    .feature-card h3 {
+        color: #333;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+
+    .feature-card p {
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .stats-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4rem 2rem;
+        text-align: center;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .stat-item {
+        padding: 1.5rem;
+    }
+
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .stat-label {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    .team-section {
+        padding: 4rem 2rem;
+        background: white;
+    }
+
+    .team-container {
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .team-card {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 3rem 2rem;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        margin: 2rem 0;
+        border: 1px solid #dee2e6;
+    }
+
+    .team-member {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .member-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: white;
+        font-weight: bold;
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    .member-info h3 {
+        color: #333;
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .member-info p {
+        color: #666;
+        margin-bottom: 1rem;
+    }
+
+    .contact-info {
+        display: flex;
+        gap: 2rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: white;
+        border-radius: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .contact-item:hover {
+        transform: translateY(-3px);
+    }
+
+    .contact-item i {
+        color: #667eea;
+        font-size: 1.2rem;
+    }
+
+    .mission-section {
+        background: #f8f9fa;
+        padding: 4rem 2rem;
+        text-align: center;
+    }
+
+    .mission-content {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .mission-content h2 {
+        color: #333;
+        font-size: 2.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .mission-content p {
+        font-size: 1.2rem;
+        color: #666;
+        line-height: 1.8;
+        margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .about-hero h1 {
+            font-size: 2.5rem;
+        }
         
+        .about-hero p {
+            font-size: 1.1rem;
+        }
+        
+        .team-member {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .contact-info {
+            flex-direction: column;
+            align-items: center;
+        }
+    }
+</style>
+
+<div class="about-hero">
+    <div class="about-hero-content">
+        <h1><i class="fas fa-book-reader"></i> Welcome to ReadOps</h1>
+        <p>Revolutionizing library management with cutting-edge technology and user-centric design</p>
+    </div>
+</div>
+
+<div class="features-grid">
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-robot"></i>
+        </div>
+        <h3>AI-Powered Recommendations</h3>
+        <p>Smart book suggestions based on your reading history and preferences, powered by advanced machine learning algorithms.</p>
+    </div>
+    
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <h3>Smart Cart System</h3>
+        <p>Add multiple books to your cart before borrowing, just like an e-commerce experience. Manage your selections easily.</p>
+    </div>
+    
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-clock"></i>
+        </div>
+        <h3>Flexible Extensions</h3>
+        <p>Extend your book return dates with just a few clicks. Choose from 3, 7, 14, or 30-day extensions.</p>
+    </div>
+    
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-mobile-alt"></i>
+        </div>
+        <h3>Modern Interface</h3>
+        <p>Beautiful, responsive design that works perfectly on all devices. Glassmorphism effects and smooth animations.</p>
+    </div>
+    
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-search"></i>
+        </div>
+        <h3>Advanced Search</h3>
+        <p>AI-enhanced search with keyword expansion and intelligent suggestions to help you find exactly what you need.</p>
     </div>
 
-    <div class="madeby">
-        <h1>Made by</h1>
-        <div class="contrib-con">
-            <div class="leftcontrib">
-        <div class="contributer">
-            <p>Sai Kiran Matta</p>
-            <div class="email">
-                <img src="{% static 'Images/mailIcon.png' %}" alt="mail icon"/>
-                <span>saikirangoud.matta@gmail.com</span>
-            </div>
-            <div class="phoneNo">
-                <img src="{% static 'Images/phoneIcon.png' %}" alt="Phone icon"/>
-                <span>7995166572</span>
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <h3>Analytics Dashboard</h3>
+        <p>Track your reading habits, popular books, and library statistics with comprehensive analytics and insights.</p>
+    </div>
+</div>
+
+<div class="stats-section">
+    <h2 style="font-size: 2.5rem; margin-bottom: 3rem;">ReadOps by the Numbers</h2>
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="stat-number">1000+</div>
+            <div class="stat-label">Books Available</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">500+</div>
+            <div class="stat-label">Active Users</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">50+</div>
+            <div class="stat-label">Departments</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">99%</div>
+            <div class="stat-label">User Satisfaction</div>
+        </div>
+    </div>
+</div>
+
+<div class="mission-section">
+    <div class="mission-content">
+        <h2><i class="fas fa-bullseye"></i> Our Mission</h2>
+        <p>ReadOps is designed to bridge the gap between traditional library management and modern digital expectations. We believe that libraries should be as intuitive and user-friendly as the best digital platforms, while maintaining the personal touch and community focus that makes libraries special.</p>
+        
+        <p>Our platform combines the best of both worlds: the reliability and comprehensive cataloging of traditional library systems with the modern UX/UI that today's users expect. From AI-powered recommendations to smart cart functionality, ReadOps brings e-commerce convenience to library management.</p>
+        
+        <p>We're committed to making knowledge more accessible, library operations more efficient, and the reading experience more enjoyable for everyone.</p>
+    </div>
+</div>
+
+<!-- Featured Books & Writers Section -->
+<div class="books-writers-section" style="background: white; padding: 4rem 2rem;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto;">
+        <h2 style="text-align: center; color: #333; font-size: 2.5rem; margin-bottom: 3rem;">
+            <i class="fas fa-book-open"></i> Featured Books & Writers
+        </h2>
+        
+        <!-- Featured Books -->
+        <div class="featured-books" style="margin-bottom: 4rem;">
+            <h3 style="color: #667eea; font-size: 2rem; margin-bottom: 2rem; text-align: center;">📚 Popular Books in Our Collection</h3>
+            <div class="books-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                <div class="book-card" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transition: transform 0.3s ease;">
+                    <div style="text-align: center; margin-bottom: 1rem;">
+                        <i class="fas fa-book" style="font-size: 3rem; color: #667eea;"></i>
+                    </div>
+                    <h4 style="color: #333; margin-bottom: 1rem; font-size: 1.3rem;">Bhagavad Gita</h4>
+                    <p style="color: #666; margin-bottom: 1rem;">The timeless spiritual classic that has guided millions on the path of righteousness and self-realization.</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: #667eea; font-weight: 600;">Religious/Spiritual</span>
+                        <span style="background: #667eea; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.9rem;">Digital Available</span>
+                    </div>
+                </div>
+                
+                <div class="book-card" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transition: transform 0.3s ease;">
+                    <div style="text-align: center; margin-bottom: 1rem;">
+                        <i class="fas fa-microchip" style="font-size: 3rem; color: #667eea;"></i>
+                    </div>
+                    <h4 style="color: #333; margin-bottom: 1rem; font-size: 1.3rem;">Advanced Computer Science</h4>
+                    <p style="color: #666; margin-bottom: 1rem;">Comprehensive guide to modern computer science concepts, algorithms, and programming paradigms.</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: #667eea; font-weight: 600;">Technical</span>
+                        <span style="background: #28a745; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.9rem;">Available</span>
+                    </div>
+                </div>
+                
+                <div class="book-card" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transition: transform 0.3s ease;">
+                    <div style="text-align: center; margin-bottom: 1rem;">
+                        <i class="fas fa-network-wired" style="font-size: 3rem; color: #667eea;"></i>
+                    </div>
+                    <h4 style="color: #333; margin-bottom: 1rem; font-size: 1.3rem;">Computer Networks</h4>
+                    <p style="color: #666; margin-bottom: 1rem;">In-depth exploration of networking protocols, architectures, and modern internet technologies.</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: #667eea; font-weight: 600;">Technical</span>
+                        <span style="background: #28a745; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.9rem;">Available</span>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <div class="contributer">
-            <p>A Mayaank</p>
-            <div class="email">
-                <img src="{% static 'Images/mailIcon.png' %}" alt="mail icon"/>
-                <span>mayaankaekka115@gmail.com</span>
-            </div>
-            <div class="phoneNo">
-                <img src="{% static 'Images/phoneIcon.png' %}" alt="Phone icon"/>
-                <span>9502042793</span>
-            </div>
-        </div>
-
-        <div class="contributer">
-            <p>Zaid Ahmed Khan</p>
-            <div class="email">
-                <img src="{% static 'Images/mailIcon.png' %}" alt="mail icon"/>
-                <span>mdzaid@gmail.com</span>
-            </div>
-            <div class="phoneNo">
-                <img src="{% static 'Images/phoneIcon.png' %}" alt="Phone icon"/>
-                <span>7680970069</span>
+        
+        <!-- Featured Writers -->
+        <div class="featured-writers">
+            <h3 style="color: #667eea; font-size: 2rem; margin-bottom: 2rem; text-align: center;">✍️ Renowned Authors & Writers</h3>
+            <div class="writers-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+                <div class="writer-card" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 2rem; border-radius: 15px; text-align: center; box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);">
+                    <div style="width: 80px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2rem;">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <h4 style="margin-bottom: 0.5rem; font-size: 1.2rem;">Ancient Sages</h4>
+                    <p style="opacity: 0.9; font-size: 0.9rem;">Vedic Literature & Spiritual Texts</p>
+                </div>
+                
+                <div class="writer-card" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 2rem; border-radius: 15px; text-align: center; box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);">
+                    <div style="width: 80px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2rem;">
+                        <i class="fas fa-laptop-code"></i>
+                    </div>
+                    <h4 style="margin-bottom: 0.5rem; font-size: 1.2rem;">Tech Authors</h4>
+                    <p style="opacity: 0.9; font-size: 0.9rem;">Computer Science & Programming</p>
+                </div>
+                
+                <div class="writer-card" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 2rem; border-radius: 15px; text-align: center; box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);">
+                    <div style="width: 80px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2rem;">
+                        <i class="fas fa-pen-fancy"></i>
+                    </div>
+                    <h4 style="margin-bottom: 0.5rem; font-size: 1.2rem;">Literature Masters</h4>
+                    <p style="opacity: 0.9; font-size: 0.9rem;">Classic & Modern Literature</p>
+                </div>
+                
+                <div class="writer-card" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 2rem; border-radius: 15px; text-align: center; box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);">
+                    <div style="width: 80px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2rem;">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h4 style="margin-bottom: 0.5rem; font-size: 1.2rem;">Academic Scholars</h4>
+                    <p style="opacity: 0.9; font-size: 0.9rem;">Educational & Research Materials</p>
+                </div>
             </div>
         </div>
     </div>
-    <div class="rightcontrib">
-        <div class="contributer">
-            <p>Nishaanth Vadlamudi</p>
-            <div class="email">
-                <img src="{% static 'Images/mailIcon.png' %}" alt="mail icon"/>
-                <span>vnishaanth@gmail.com</span>
-            </div>
-            <div class="phoneNo">
-                <img src="{% static 'Images/phoneIcon.png' %}" alt="Phone icon"/>
-                <span>7995169787</span>
-            </div>
-        </div>
+</div>
 
-        <div class="contributer">
-            <p>S Durga Nitish Krishna</p>
-            <div class="email">
-                <img src="{% static 'Images/mailIcon.png' %}" alt="mail icon"/>
-                <span>sdnkrish@gmail.com</span>
+<!-- Digital Library Section -->
+<div class="digital-library-section" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); padding: 4rem 2rem;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; text-align: center;">
+        <h2 style="color: #333; font-size: 2.5rem; margin-bottom: 2rem;">
+            <i class="fas fa-book-reader"></i> Digital Library Collection
+        </h2>
+        <p style="font-size: 1.2rem; color: #666; margin-bottom: 3rem; max-width: 800px; margin-left: auto; margin-right: auto;">
+            Explore our extensive digital collection featuring ancient texts, modern literature, technical books, and educational resources.
+        </p>
+        
+        <div class="digital-categories" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+            <div class="category-card" style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transition: transform 0.3s ease;">
+                <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
+                    <i class="fas fa-om"></i>
+                </div>
+                <h4 style="color: #333; margin-bottom: 1rem;">Religious & Spiritual</h4>
+                <p style="color: #666; font-size: 0.9rem;">Bhagavad Gita, Ramayana, Mahabharata, Vedas, Upanishads</p>
             </div>
-            <div class="phoneNo">
-                <img src="{% static 'Images/phoneIcon.png' %}" alt="Phone icon"/>
-                <span>8995166571</span>
+            
+            <div class="category-card" style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transition: transform 0.3s ease;">
+                <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
+                    <i class="fas fa-laptop-code"></i>
+                </div>
+                <h4 style="color: #333; margin-bottom: 1rem;">Technical Books</h4>
+                <p style="color: #666; font-size: 0.9rem;">Computer Science, Programming, Networks, Algorithms</p>
             </div>
-        </div>
-
-        <div class="contributer">
-            <p>K Chetan</p>
-            <div class="email">
-                <img src="{% static 'Images/mailIcon.png' %}" alt="mail icon"/>
-                <span>kchetan@gmail.com</span>
+            
+            <div class="category-card" style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transition: transform 0.3s ease;">
+                <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <h4 style="color: #333; margin-bottom: 1rem;">Educational</h4>
+                <p style="color: #666; font-size: 0.9rem;">Academic texts, Research papers, Study materials</p>
             </div>
-            <div class="phoneNo">
-                <img src="{% static 'Images/phoneIcon.png' %}" alt="Phone icon"/>
-                <span>8978512470</span>
+            
+            <div class="category-card" style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transition: transform 0.3s ease;">
+                <div style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;">
+                    <i class="fas fa-pen-fancy"></i>
+                </div>
+                <h4 style="color: #333; margin-bottom: 1rem;">Literature</h4>
+                <p style="color: #666; font-size: 0.9rem;">Classic novels, Poetry, Short stories, Essays</p>
             </div>
         </div>
     </div>
+</div>
+
+<!-- Library Services Section -->
+<div class="services-section" style="background: white; padding: 4rem 2rem;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto;">
+        <h2 style="text-align: center; color: #333; font-size: 2.5rem; margin-bottom: 3rem;">
+            <i class="fas fa-concierge-bell"></i> Our Services
+        </h2>
+        
+        <div class="services-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+            <div class="service-card" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 2rem; border-radius: 15px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <h3 style="margin-bottom: 1rem; font-size: 1.5rem;">Physical Book Lending</h3>
+                <p style="opacity: 0.9;">Borrow physical books with flexible return dates and extension options.</p>
+            </div>
+            
+            <div class="service-card" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 2rem; border-radius: 15px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">
+                    <i class="fas fa-tablet-alt"></i>
+                </div>
+                <h3 style="margin-bottom: 1rem; font-size: 1.5rem;">Digital Reading</h3>
+                <p style="opacity: 0.9;">Access digital books online with our advanced e-reader interface.</p>
+            </div>
+            
+            <div class="service-card" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 2rem; border-radius: 15px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">
+                    <i class="fas fa-download"></i>
+                </div>
+                <h3 style="margin-bottom: 1rem; font-size: 1.5rem;">Book Downloads</h3>
+                <p style="opacity: 0.9;">Download books in PDF or Word format for offline reading.</p>
+            </div>
+            
+            <div class="service-card" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 2rem; border-radius: 15px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h3 style="margin-bottom: 1rem; font-size: 1.5rem;">AI Recommendations</h3>
+                <p style="opacity: 0.9;">Get personalized book suggestions based on your reading history.</p>
+            </div>
+            
+            <div class="service-card" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 2rem; border-radius: 15px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <h3 style="margin-bottom: 1rem; font-size: 1.5rem;">Smart Notifications</h3>
+                <p style="opacity: 0.9;">Receive timely reminders and updates via SMS and email.</p>
+            </div>
+            
+            <div class="service-card" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 2rem; border-radius: 15px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3 style="margin-bottom: 1rem; font-size: 1.5rem;">Reading Analytics</h3>
+                <p style="opacity: 0.9;">Track your reading habits and discover insights about your preferences.</p>
+            </div>
+        </div>
     </div>
+</div>
+
+<div class="team-section">
+    <div class="team-container">
+        <h2 style="color: #333; font-size: 2.5rem; margin-bottom: 3rem;"><i class="fas fa-users"></i> Meet the Team</h2>
+        
+        <div class="team-card">
+            <div class="team-member">
+                <div class="member-avatar">VJ</div>
+                <div class="member-info">
+                    <h3>Varun J</h3>
+                    <p>Full-Stack Developer & Library Management Specialist</p>
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                    <span>varunjagadee24@gmail.com</span>
+                </div>
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <span>+91 7204310480</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

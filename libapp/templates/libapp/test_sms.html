@@ -1,0 +1,136 @@
+{% extends 'libapp/base.html' %}
+{% block title %}Test SMS - ReadOps{% endblock %}
+{% block content %}
+{% load static %}
+
+<style>
+    .test-sms-container {
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 2rem;
+    }
+
+    .test-sms-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .test-sms-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+    }
+
+    .test-sms-header h1 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .phone-display {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 1rem 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .test-button {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 1rem;
+    }
+
+    .test-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+    }
+
+    .info-box {
+        background: #e3f2fd;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        border-left: 4px solid #2196f3;
+    }
+
+    .info-box h3 {
+        color: #1976d2;
+        margin-bottom: 1rem;
+    }
+
+    .info-box ul {
+        text-align: left;
+        color: #424242;
+    }
+
+    .console-info {
+        background: #2c3e50;
+        color: #ecf0f1;
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 1rem 0;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="test-sms-container">
+    <div class="test-sms-card">
+        <div class="test-sms-header">
+            <h1><i class="fas fa-sms"></i> Test SMS Notifications</h1>
+            <p>Test SMS functionality for your registered mobile number</p>
+        </div>
+
+        <div class="phone-display">
+            <i class="fas fa-mobile-alt"></i> Your Mobile Number: {{ user.phone }}
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="test-button">
+                <i class="fas fa-paper-plane"></i> Send Test SMS
+            </button>
+        </form>
+
+        <div class="info-box">
+            <h3><i class="fas fa-info-circle"></i> How SMS Testing Works</h3>
+            <ul>
+                <li><strong>Mock Mode:</strong> Currently in development mode</li>
+                <li><strong>Console Output:</strong> SMS details are printed to the server console</li>
+                <li><strong>Real SMS:</strong> In production, this would send actual SMS messages</li>
+                <li><strong>Message Content:</strong> Welcome message with library features</li>
+            </ul>
+        </div>
+
+        <div class="console-info">
+            <strong>📱 SMS Details will appear in the server console/terminal:</strong><br>
+            • Phone number formatting<br>
+            • Complete SMS message content<br>
+            • Sender ID and status<br>
+            • Success/failure indicators
+        </div>
+
+        <div class="info-box">
+            <h3><i class="fas fa-cog"></i> SMS Service Status</h3>
+            <p><strong>Current Mode:</strong> Development (Mock SMS)</p>
+            <p><strong>SMS Enabled:</strong> {% if SMS_ENABLED %}Yes{% else %}No{% endif %}</p>
+            <p><strong>Sender ID:</strong> READOPS</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

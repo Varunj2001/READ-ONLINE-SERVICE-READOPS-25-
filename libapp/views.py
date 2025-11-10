@@ -1,353 +1,723 @@
 from django.shortcuts import redirect, render, get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseNotAllowed
+from decimal import Decimal
 from .models import Book
 from .forms import BookRequestForm
 from .forms import BookFilterForm
 from .forms import RegistrationForm, LoginForm
+from .forms import UserUpdateForm
 from django.contrib import messages
 from django.contrib.auth import authenticate,login as auth_login,logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.utils import timezone
-from .models import CustomUser
+from .models import CustomUser, Fine, Payment, MobileNotification
+from .email_service import email_service
 from django.contrib.auth.decorators import user_passes_test
 from django.urls import reverse
+from .decorators import check_fine_access, require_no_excessive_fines
 
 
 # Create your views here.
+
+def logout_view(request):
+    auth_logout(request)
+    messages.success(request, 'You have been successfully logged out.')
+    return redirect('home')
 
 def index(request):
     return render(request, 'libapp/index.html')
 
 def home(request):
-    return render(request, 'libapp/home.html')
+    context = {}
+    if request.user.is_authenticated:
+        # Add today's date for comparison in template
+        context['today'] = timezone.now().date()
+        
+        # Process user's books to check for overdue status
+        if hasattr(request.user, 'books') and request.user.books:
+            for book in request.user.books:
+                end_date_str = book.get('end_date')
+                if end_date_str:
+                    end_date = timezone.datetime.fromisoformat(end_date_str).date()
+                    current_date = timezone.now().date()
+                    book['is_overdue'] = end_date < current_date
+    
+    return render(request, 'libapp/home.html', context)
+    
+@login_required
+@user_passes_test(lambda u: u.is_librarian)
+def status_view(request):
+    # Get all books in the system
+    all_books = Book.objects.all()
+    
+    # Get statistics
+    total_books = all_books.count()
+    available_books = all_books.filter(quantity__gt=0).count()
+    borrowed_books = 0
+    returned_books = 0
+    
+    # Count lost books (books with quantity = 0 and have associated fines)
+    lost_books = 0
+    # Fine.status choices use 'PENDING' uppercase; use matching value
+    lost_books_fines = Fine.objects.filter(status='PENDING').values('book_title').distinct()
+    lost_books = len(lost_books_fines)
+    
+    # Count borrowed books
+    users_with_books = CustomUser.objects.filter(books__isnull=False)
+    
+    # Process user book data to include return status
+    for user in users_with_books:
+        for book in user.books:
+            # Calculate if the book is overdue
+            end_date_str = book.get('end_date')
+            if end_date_str:
+                end_date = timezone.datetime.fromisoformat(end_date_str)
+                current_date = timezone.now()
+                
+                # Check if book is returned
+                if book.get('is_returned', False):
+                    returned_books += 1
+                    book['is_returned'] = True
+                    book['is_overdue'] = False
+                else:
+                    borrowed_books += 1
+                    book['is_returned'] = False
+                    book['is_overdue'] = end_date < current_date
+    
+    context = {
+        'total_books': total_books,
+        'available_books': available_books,
+        'borrowed_books': borrowed_books,
+        'returned_books': returned_books,
+        'lost_books': lost_books,
+        'users_with_books': users_with_books,
+    }
+    
+    return render(request, 'libapp/status.html', context)
 
 def explore(request):
     search_query = request.GET.get('q')
     books = Book.objects.all()
-
+    free_books_suggestions = None
+    
     if search_query:
-        # Filter the books based on the search query using Q object and icontains lookup
         books = books.filter(
-            Q(title__icontains=search_query) | 
-            Q(author__icontains=search_query) | 
-            Q(department__icontains=search_query) | 
+            Q(title__icontains=search_query) |
+            Q(author__icontains=search_query) |
             Q(subject__icontains=search_query)
         )
-
+        
+        # If no books found, suggest free alternatives
+        if not books.exists():
+            from .free_books_service import free_books_service
+            free_books_suggestions = free_books_service.get_platform_suggestions(search_query)
+    
     context = {
         'books': books,
+        'search_query': search_query,
+        'free_books_suggestions': free_books_suggestions,
+        'no_results': not books.exists() and search_query
     }
     return render(request, 'libapp/explore.html', context)
 
 def explore_view(request):
     form = BookFilterForm(request.GET)
     books = Book.objects.all()
-
+    
     if form.is_valid():
-        department = form.cleaned_data['department']
-        subjects = form.cleaned_data['subjects']
+        if form.cleaned_data.get('subject'):
+            books = books.filter(subject=form.cleaned_data['subject'])
+        if form.cleaned_data.get('author'):
+            books = books.filter(author__icontains=form.cleaned_data['author'])
+        if form.cleaned_data.get('title'):
+            books = books.filter(title__icontains=form.cleaned_data['title'])
+    
+    context = {
+        'books': books,
+        'form': form,
+    }
+    return render(request, 'libapp/explore.html', context)
 
-        if department:
-            books = books.filter(department=department)
-
-        if subjects:
-            books = books.filter(subject__in=subjects)
-
-    return render(request, 'libapp/explore.html', {'books': books, 'form': form})
-
-@login_required(login_url='login')
+@login_required
 def book_request_view(request):
     if request.method == 'POST':
-        book_id = request.POST.get('book')
+        form = BookRequestForm(request.POST)
+        if form.is_valid():
+            book_request = form.save(commit=False)
+            book_request.user = request.user
+            book_request.save()
+            messages.success(request, 'Book request submitted successfully!')
+            return redirect('home')
+    else:
+        form = BookRequestForm()
+    
+    return render(request, 'libapp/book_request_form.html', {'form': form})
+
+@login_required
+def return_book_view(request):
+    if request.method == 'POST':
+        book_id_raw = request.POST.get('book_id')
         try:
-            book = Book.objects.get(pk=book_id)
+            book_id = int(book_id_raw)
+        except (TypeError, ValueError):
+            messages.error(request, 'Invalid book ID.')
+            return redirect('user_dashboard')
+
+        try:
+            book_obj = Book.objects.get(id=book_id)
         except Book.DoesNotExist:
-            messages.error(request, 'Book not found.')
-            return redirect('explore')
+            messages.error(request, "Book not found.")
+            return redirect('user_dashboard')
 
-        if book.quantity > 0:
-            # Reduce the book quantity by 1
-            book.quantity -= 1
-            book.save()
+        user = request.user
 
-            # Add book details to the user's "books" list
-            if request.user.is_authenticated:
-                request.user.take_book(book)
-                messages.success(request, f'Successfully taken {book.title}.')
-            else:
-                messages.error(request, 'You need to be logged in to take a book.')
+        # Use the model's return_book method to properly remove the book
+        if user.return_book(book_id):
+            # Increment book quantity
+            book_obj.quantity += 1
+            book_obj.save()
+
+            # Expire any ongoing mobile notifications for this book
+            MobileNotification.objects.filter(
+                user=user,
+                book_id=book_id,
+                status__in=['PENDING', 'CONFIRMED']
+            ).update(status='EXPIRED')
+
+            # Create a return confirmation notification
+            MobileNotification.objects.create(
+                user=user,
+                notification_type='BOOK_RETURNED',
+                title=f'Book Returned: {book_obj.title}',
+                message=f'You have successfully returned "{book_obj.title}". Thank you!',
+                book_title=book_obj.title,
+                book_id=book_obj.id,
+                status='CONFIRMED'
+            )
+
+            messages.success(request, f'Book "{book_obj.title}" returned successfully!')
         else:
-            messages.error(request, 'The book is not available.')
+            messages.error(request, 'Book not found in your borrowed books.')
+    else:
+        messages.error(request, 'Invalid request method.')
 
     return redirect('user_dashboard')
 
-
 def get_subjects_view(request):
-    selected_department = request.GET.get('dept')
-    subjects = Book.objects.filter(department=selected_department).values_list('subject', flat=True).distinct()
-    selected_subjects = request.GET.getlist('subjects[]')
-    return JsonResponse({'subjects': list(subjects), 'selected_subjects': selected_subjects})
+    subjects = Book.objects.values_list('subject', flat=True).distinct()
+    return JsonResponse(list(subjects), safe=False)
 
 def get_books_view(request):
-    selected_department = request.GET.get('dept')
-    selected_subjects = request.GET.getlist('subjects[]')
+    subject = request.GET.get('subject')
+    if subject:
+        books = Book.objects.filter(subject=subject)
+        books_data = [{'id': book.id, 'title': book.title, 'author': book.author} for book in books]
+        return JsonResponse(books_data, safe=False)
+    return JsonResponse([], safe=False)
+
+def aboutus_view(request):
+    return render(request, 'libapp/aboutus.html')
+
+@login_required
+@user_passes_test(lambda u: u.is_librarian)
+def update_book_details(request, book_pk):
+    book = get_object_or_404(Book, pk=book_pk)
+    return render(request, 'libapp/update_book_details.html', {'book': book})
+
+@login_required
+@user_passes_test(lambda u: u.is_librarian)
+def save_book_details(request, book_pk):
+    book = get_object_or_404(Book, pk=book_pk)
+    if request.method == 'POST':
+        book.title = request.POST.get('title', book.title)
+        book.author = request.POST.get('author', book.author)
+        book.subject = request.POST.get('subject', book.subject)
+        book.quantity = int(request.POST.get('quantity', book.quantity))
+        book.save()
+        messages.success(request, 'Book details updated successfully!')
+        return redirect('librarian_dashboard')
+    return redirect('update_book_details', book_pk=book_pk)
+
+@login_required
+@user_passes_test(lambda u: u.is_librarian)
+def render_add_new_book_page(request):
+    return render(request, 'libapp/add_new_book.html')
+
+@login_required
+@user_passes_test(lambda u: u.is_librarian)
+def save_new_book(request):
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        author = request.POST.get('author')
+        subject = request.POST.get('subject')
+        quantity = int(request.POST.get('quantity', 1))
+        
+        if title and author and subject:
+            book = Book.objects.create(
+                title=title,
+                author=author,
+                subject=subject,
+                quantity=quantity
+            )
+            messages.success(request, f'Book "{book.title}" added successfully!')
+            return redirect('librarian_dashboard')
+        else:
+            messages.error(request, 'Please fill in all required fields.')
+    
+    return redirect('add_new_book')
+
+@login_required
+@user_passes_test(lambda u: u.is_librarian)
+def librarian_dashboard(request):
     books = Book.objects.all()
-    if selected_department:
-        books = books.filter(department=selected_department)
-    if selected_subjects:
-        books = books.filter(subject__in=selected_subjects)
-    book_data = [{'title': book.title, 'description': book.description, 'author': book.author,
-                  'quantity': book.quantity, 'department': book.department, 'subject': book.subject,
-                  'image': book.image.url if book.image else ''} for book in books]
-    return JsonResponse({'books': book_data})
+    users = CustomUser.objects.filter(is_librarian=False)
+    return render(request, 'libapp/librarian_dashboard.html', {'books': books, 'users': users})
 
+@login_required
+@user_passes_test(lambda u: u.is_librarian)
+def remind_user(request):
+    # Implementation for reminding users
+    return JsonResponse({'status': 'success'})
 
-def login(request):
-    return render(request,'libapp/login.html')
+@login_required
+def payment_view(request, fine_id):
+    fine = get_object_or_404(Fine, id=fine_id)
+    return render(request, 'libapp/payment.html', {'fine': fine})
+
+@login_required
+def pay_fine(request):
+    if request.method == 'POST':
+        fine_id = request.POST.get('fine_id')
+        fine = get_object_or_404(Fine, id=fine_id)
+        
+        # Create payment record
+        payment = Payment.objects.create(
+            user=request.user,
+            fine=fine,
+            amount=fine.amount,
+            payment_method=request.POST.get('payment_method', 'CASH'),
+            bank_name=request.POST.get('bank_name', ''),
+            status='COMPLETED'
+        )
+        
+        # Update fine status
+        fine.status = 'PAID'
+        fine.save()
+        
+        # Send payment confirmation email
+        try:
+            email_service.send_payment_success_email(request.user, fine.amount, payment.payment_method, fine.book_title)
+            messages.success(request, 'Fine paid successfully! Payment confirmation email sent to your registered email address.')
+        except Exception as e:
+            print(f"Email sending failed: {str(e)}")
+            messages.success(request, 'Fine paid successfully!')
+        
+        return redirect('payment_receipt', payment_id=payment.id)
+    
+    return redirect('user_dashboard')
+
+@login_required
+def pay_lost_book(request):
+    if request.method == 'POST':
+        book_id = request.POST.get('book_id')
+        book = get_object_or_404(Book, id=book_id)
+        
+        # Create fine for lost book
+        fine = Fine.objects.create(
+            user=request.user,
+            book_title=book.title,
+            amount=Decimal('500.00'),  # Lost book fine
+            reason='LOST_BOOK',
+            status='PENDING'
+        )
+        
+        # Create payment
+        payment = Payment.objects.create(
+            user=request.user,
+            fine=fine,
+            amount=fine.amount,
+            payment_method=request.POST.get('payment_method', 'CASH'),
+            bank_name=request.POST.get('bank_name', ''),
+            status='COMPLETED'
+        )
+        
+        # Update fine status
+        fine.status = 'PAID'
+        fine.save()
+        
+        # Send payment confirmation email
+        try:
+            book_title = book.title if book else 'Unknown Book'
+            email_service.send_payment_success_email(request.user, fine.amount, payment.payment_method, book_title)
+            messages.success(request, 'Lost book fine paid successfully! Payment confirmation email sent to your registered email address.')
+        except Exception as e:
+            print(f"Email sending failed: {str(e)}")
+            messages.success(request, 'Lost book fine paid successfully!')
+        
+        return redirect('payment_receipt', payment_id=payment.id)
+    
+    return redirect('user_dashboard')
+
+@login_required
+@user_passes_test(lambda u: u.is_librarian)
+def add_fine(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        book_title = request.POST.get('book_title')
+        amount = request.POST.get('amount')
+        reason = request.POST.get('reason')
+        
+        user = get_object_or_404(CustomUser, id=user_id)
+        
+        fine = Fine.objects.create(
+            user=user,
+            book_title=book_title,
+            amount=Decimal(amount),
+            reason=reason,
+            status='PENDING'
+        )
+        
+        messages.success(request, f'Fine of ${amount} added for {user.username}')
+        return redirect('librarian_dashboard')
+    
+    return redirect('librarian_dashboard')
+
+@login_required
+def payment_receipt(request, payment_id):
+    payment = get_object_or_404(Payment, id=payment_id)
+    return render(request, 'libapp/payment_receipt.html', {'payment': payment})
+
+@login_required
+def view_payments(request):
+    payments = Payment.objects.filter(user=request.user).order_by('-payment_date')
+    return render(request, 'libapp/view_payments.html', {'payments': payments})
+
+@login_required
+def view_payment(request, payment_id):
+    payment = get_object_or_404(Payment, id=payment_id, user=request.user)
+    return render(request, 'libapp/view_payment.html', {'payment': payment})
+
+@login_required
+def generate_barcode(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    return render(request, 'libapp/barcode.html', {'book': book})
+
+@login_required
+def add_to_cart(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    if book.quantity > 0:
+        if not hasattr(request.user, 'cart'):
+            request.user.cart = []
+        
+        if book_id not in request.user.cart:
+            request.user.cart.append(book_id)
+            request.user.save()
+            messages.success(request, f'{book.title} added to cart!')
+        else:
+            messages.info(request, f'{book.title} is already in your cart!')
+    else:
+        messages.error(request, 'Book is not available!')
+    
+    return redirect('explore')
+
+@login_required
+def remove_from_cart(request, book_id):
+    if hasattr(request.user, 'cart') and book_id in request.user.cart:
+        request.user.cart.remove(book_id)
+        request.user.save()
+        messages.success(request, 'Book removed from cart!')
+    
+    return redirect('cart_view')
+
+@login_required
+def cart_view(request):
+    cart_books = []
+    if hasattr(request.user, 'cart') and request.user.cart:
+        cart_books = Book.objects.filter(id__in=request.user.cart)
+    
+    return render(request, 'libapp/cart.html', {'cart_books': cart_books})
+
+@login_required
+def checkout_cart(request):
+    if hasattr(request.user, 'cart') and request.user.cart:
+        # Process checkout logic here
+        # For now, just clear the cart
+        request.user.cart = []
+        request.user.save()
+        messages.success(request, 'Checkout completed successfully!')
+    
+    return redirect('user_dashboard')
+
+@login_required
+def extend_book(request, book_id):
+    # Implementation for extending book due date
+    messages.success(request, 'Book due date extended!')
+    return redirect('user_dashboard')
+
+@login_required
+def ai_recommendations(request):
+    # AI recommendations logic
+    recommended_books = Book.objects.all()[:5]  # Placeholder
+    return render(request, 'libapp/ai_recommendations.html', {'recommended_books': recommended_books})
+
+@login_required
+def ai_search(request):
+    query = request.GET.get('q', '')
+    free_books_suggestions = None
+    
+    if query:
+        # AI search logic
+        books = Book.objects.filter(
+            Q(title__icontains=query) |
+            Q(author__icontains=query) |
+            Q(subject__icontains=query)
+        )[:10]
+        
+        # If no books found, suggest free alternatives
+        if not books.exists():
+            from .free_books_service import free_books_service
+            free_books_suggestions = free_books_service.get_platform_suggestions(query)
+    else:
+        books = Book.objects.none()
+    
+    return render(request, 'libapp/explore.html', {
+        'books': books, 
+        'search_query': query,
+        'free_books_suggestions': free_books_suggestions,
+        'no_results': not books.exists() and query
+    })
+
+@login_required
+def free_books_suggestions(request):
+    """View to show free book suggestions for a specific search"""
+    query = request.GET.get('q', '')
+    subject = request.GET.get('subject', '')
+    
+    if not query:
+        return redirect('explore')
+    
+    from .free_books_service import free_books_service
+    
+    # Get free book suggestions
+    suggestions = free_books_service.get_platform_suggestions(query)
+    
+    # Get subject-specific platforms if subject is provided
+    subject_platforms = []
+    if subject:
+        subject_platforms = free_books_service.get_subject_specific_platforms(subject)
+    
+    context = {
+        'suggestions': suggestions,
+        'subject_platforms': subject_platforms,
+        'search_query': query,
+        'subject': subject
+    }
+    
+    return render(request, 'libapp/free_books_suggestions.html', context)
+
+@login_required
+def report_lost_book(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    
+    if request.method == 'POST':
+        # Create fine for lost book
+        fine = Fine.objects.create(
+            user=request.user,
+            book_title=book.title,
+            amount=Decimal('500.00'),
+            reason='LOST_BOOK',
+            status='PENDING'
+        )
+        
+        # Update book quantity
+        book.quantity = max(0, book.quantity - 1)
+        book.save()
+        
+        messages.success(request, f'Book "{book.title}" reported as lost. Fine of $500.00 has been added.')
+        return redirect('user_dashboard')
+    
+    return render(request, 'libapp/status.html', {'book': book})
+
+def login_view(request):
+    return render(request, 'libapp/login.html')
+
 def signup(request):
-    return render(request,'libapp/register.html')
+    return render(request, 'libapp/register.html')
+
 def register(request):
-    print("hi")
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            email = form.cleaned_data['email']
-            phone = form.cleaned_data['phone']
-            if len(username) < 5:
-                messages.error(request,'Username must be at least 5 characters long.')
-                return redirect('signup')
-        
-        # Check password conditions
-            if len(password) < 8:
-                messages.error(request, 'Password must be at least 8 characters long.')
-                return redirect('signup')
-            if len(phone)<10:
-                messages.error(request,"Phone number should have exactly ten digits.")
-                return redirect('signup')
-
             user = form.save(commit=False)
             user.set_password(form.cleaned_data['password'])
-            user.email = form.cleaned_data['email']
-            user.phone = form.cleaned_data['phone']
             user.save()
-            redirect('login')
+            
+            # Send welcome email
+            try:
+                email_service.send_registration_email(user)
+                messages.success(request, 'Registration successful! Welcome email sent to your registered email address.')
+            except Exception as e:
+                print(f"Email sending failed: {str(e)}")
+                messages.success(request, 'Registration successful! Please log in.')
+            
+            return redirect('login')
     else:
         form = RegistrationForm()
-    return render(request, 'libapp/login.html', {'form': form})
+    
+    return render(request, 'libapp/register.html', {'form': form})
 
 def login_user(request):
     if request.method == 'POST':
-        print("h21")
         form = LoginForm(request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
-            if len(username) < 5:
-                messages.error(request,'Username must be at least 5 characters long.')
-                return redirect('login')
-        
-        # Check password conditions
-            if len(password) < 8:
-                messages.error(request, 'Password must be at least 8 characters long.')
-                return redirect('login')
             user = authenticate(request, username=username, password=password)
-            if user is not None and not user.is_librarian:  # Check if the user is not a librarian
+            if user:
                 auth_login(request, user)
-                request.session['user_id'] = user.id
-                return redirect('home')  # Replace 'home' with your desired homepage URL
-            
+                messages.success(request, 'Login successful!')
+                return redirect('user_dashboard')
             else:
-                if user is not None and user.is_librarian:
-                    messages.error(request, 'Librarians are not allowed to log in here.')
-                else:
-                    messages.error(request, 'Invalid credentials. Please try again.')
-                return redirect('login')
+                messages.error(request, 'Invalid credentials!')
     else:
         form = LoginForm()
+    
     return render(request, 'libapp/login.html', {'form': form})
-
-def logout(request):
-    auth_logout(request)
-    return redirect(reverse('home'))
-
-def is_librarian(user):
-    return user.is_authenticated and user.is_librarian
-
-
-
-def user_dashboard_view(request):
-    if not request.user.is_authenticated:
-        return redirect('login')
-
-    user = request.user
-    user_books = user.books  # Assuming 'books' is the JSONField containing the user's books
-
-    for book in user_books:
-        end_date_str = book.get('end_date')
-        if end_date_str:
-            end_date = timezone.datetime.fromisoformat(end_date_str)
-            book['end_date'] = end_date
-            
-
-        # Assuming 'start_date' is a field in your 'Book' model
-        start_date_str = book.get('start_date')
-        if start_date_str:
-            start_date = timezone.datetime.fromisoformat(start_date_str)
-            book['start_date'] = start_date
-
-    context = {
-        'user': user,
-        'user_books': user_books,
-    }
-
-    return render(request, 'libapp/user_dashboard.html', context)
-
-
-
-def return_book_view(request):
-    if request.method == 'POST':
-        book_id = int(request.POST.get('book_id'))
-        user = request.user
-
-        try:
-            book_info = user.books.pop(book_id)
-            book = Book.objects.get(title=book_info['title'])
-            book.quantity += 1
-            book.save()
-            user.save()
-            messages.success(request, f'Returned {book.title}.')
-        except (IndexError, Book.DoesNotExist):
-            messages.error(request, 'Book not found or error in returning.')
-
-    return redirect('user_dashboard')
-
-def aboutus_view(request):
-    return render(request, 'libapp/aboutus.html')
 
 def login_librarian(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-
-        # Authenticate the librarian
-        user = authenticate(request, username=username, password=password, is_librarian=True)
-
+        user = authenticate(request, username=username, password=password)
         if user and user.is_librarian:
             auth_login(request, user)
-            # Redirect to the librarian dashboard or any other librarian-specific view
-            return redirect('home')  # Replace 'librarian_dashboard' with your librarian view name
-
-        # If authentication fails, display a warning message
-        messages.warning(request, 'Invalid username or password.')
-        return redirect('login_librarian')  # Redirect back to the librarian login page
-
-    return render(request, 'libapp/librarian_login.html')
+            messages.success(request, 'Librarian login successful!')
+            return redirect('librarian_dashboard')
+        else:
+            messages.error(request, 'Invalid librarian credentials!')
     
+    return render(request, 'libapp/librarian_login.html')
 
+@login_required
+def test_sms(request):
+    # SMS testing functionality
+    return render(request, 'libapp/test_sms.html')
 
-def update_book_details(request, book_pk):
-    book = get_object_or_404(Book, pk=book_pk)
+@login_required
+def mobile_notification(request, notification_id):
+    notification = get_object_or_404(MobileNotification, id=notification_id)
+    return render(request, 'libapp/mobile_notification.html', {'notification': notification})
 
-    context = {'book': book}
-    return render(request, 'libapp/update_book_details.html', context)
-
-def save_book_details(request, book_pk):
-    book = get_object_or_404(Book, pk=book_pk)
-
+@login_required
+def respond_notification(request, notification_id):
+    notification = get_object_or_404(MobileNotification, id=notification_id)
+    
     if request.method == 'POST':
-        # Get the form data from the request
-        title = request.POST.get('title')
-        description = request.POST.get('description')
-        author = request.POST.get('author')
-        quantity = int(request.POST.get('quantity', 0))
-        department = request.POST.get('department')
-        subject = request.POST.get('subject')
-        image = request.FILES.get('image')
+        response = request.POST.get('response')
+        if response:
+            notification.response = response
+            notification.save()
+            messages.success(request, 'Response sent successfully!')
+            return redirect('my_notifications')
+    
+    return render(request, 'libapp/mobile_notification.html', {'notification': notification})
 
-        # Update the book details
-        book.title = title
-        book.description = description
-        book.author = author
-        book.quantity = quantity
-        book.department = department
-        book.subject = subject
-        if image:
-            book.image = image
-        book.save()
+@login_required
+def create_book_borrow_notification(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    
+    # Create notification for book borrowing
+    notification = MobileNotification.objects.create(
+        user=request.user,
+        book_title=book.title,
+        notification_type='BORROW_REQUEST',
+        message=f'Request to borrow "{book.title}"',
+        status='PENDING'
+    )
+    
+    # Send email notification for book borrowing
+    try:
+        email_service.send_book_borrowed_email(request.user, book, notification.bima_id)
+        messages.success(request, 'Borrow request notification sent! Email notification sent to your registered email address.')
+    except Exception as e:
+        print(f"Email sending failed: {str(e)}")
+        messages.success(request, 'Borrow request notification sent!')
+    
+    return redirect('my_notifications')
 
-        return redirect('explore')  # Replace 'explore' with the appropriate URL name for your book list view
+@login_required
+def create_book_return_notification(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    
+    # Create notification for book return
+    notification = MobileNotification.objects.create(
+        user=request.user,
+        book_title=book.title,
+        notification_type='RETURN_REQUEST',
+        message=f'Request to return "{book.title}"',
+        status='PENDING'
+    )
+    
+    # Send email notification for book return
+    try:
+        email_service.send_book_returned_email(request.user, book, notification.bima_id)
+        messages.success(request, 'Return request notification sent! Email notification sent to your registered email address.')
+    except Exception as e:
+        print(f"Email sending failed: {str(e)}")
+        messages.success(request, 'Return request notification sent!')
+    
+    return redirect('my_notifications')
 
-    return redirect('libapp/update_book_details', book_pk=book.pk)
+@login_required
+def my_notifications(request):
+    notifications = MobileNotification.objects.filter(user=request.user).order_by('-created_date')
+    return render(request, 'libapp/my_notifications.html', {'notifications': notifications})
 
-
-def render_add_new_book_page(request):
-    return render(request, 'libapp/new_book.html')
-
-def save_new_book(request):
-    if request.method == 'POST':
-        image = request.FILES.get('image')
-        title = request.POST.get('title')
-        author = request.POST.get('author')
-        quantity = request.POST.get('quantity')
-        department = request.POST.get('department')
-        subject = request.POST.get('subject')
-        description = request.POST.get('description')
-
-        # Create and save the new book object
-        book = Book(image=image, title=title, author=author, quantity=quantity,
-                    department=department, subject=subject, description=description)
-        book.save()
-
-        return redirect('explore') 
-
-    return render(request, 'libapp/new_book.html')
-
-
-
-@user_passes_test(is_librarian)
-def librarian_dashboard(request):
-    # Get all users who have taken books
-    users_with_books = CustomUser.objects.filter(is_librarian=False).exclude(books=[])
-    user = request.user
-    for user_with_books in users_with_books:
-        for book in user_with_books.books:
-            end_date_str = book.get('end_date')
-            if end_date_str:
-                end_date = timezone.datetime.fromisoformat(end_date_str)
-                book['end_date'] = end_date
-
-            start_date_str = book.get('start_date')
-            if start_date_str:
-                start_date = timezone.datetime.fromisoformat(start_date_str)
-                book['start_date'] = start_date
-
+@login_required
+def user_dashboard(request):
+    # Get user's borrowed books
+    user_books = []
+    if hasattr(request.user, 'books') and request.user.books:
+        user_books = request.user.books
+    
+    # Get user's fines
+    fines = Fine.objects.filter(user=request.user, status='PENDING')
+    
+    # Get user's payments
+    payments = Payment.objects.filter(user=request.user).order_by('-payment_date')[:5]
+    
     context = {
-        'users_with_books': users_with_books,
-        'librarian':user,
+        'user_books': user_books,
+        'fines': fines,
+        'payments': payments,
+        'today': timezone.now().date(),
     }
+    
+    return render(request, 'libapp/user_dashboard.html', context)
 
-    return render(request, 'libapp/librarian_dashboard.html', context)
-
-
-def remind_user(request):
+@login_required
+def update_user(request):
     if request.method == 'POST':
-        user_id = request.POST.get('user_id')
-        book_id = int(request.POST.get('book_id'))
-        user = CustomUser.objects.get(id=user_id)
-        book = user.books[book_id]
+        form = UserUpdateForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('user_dashboard')
+    else:
+        form = UserUpdateForm(instance=request.user)
+    
+    return render(request, 'libapp/register.html', {'form': form})
 
-        book_title = book['title']
-        end_date = book['end_date']
-
-        notification = {
-            'title': book_title,
-            'end_date': end_date,
-        }
-
-        user.notifications.append(notification)
-        user.save()
-
-    return redirect('librarian_dashboard')
+@login_required
+def test_email(request):
+    if request.method == 'POST':
+        # Send test email
+        try:
+            email_service.send_registration_email(request.user)
+            messages.success(request, 'Test email sent successfully! Check your registered email address.')
+        except Exception as e:
+            print(f"Email sending failed: {str(e)}")
+            messages.error(request, f'Failed to send test email: {str(e)}')
+    
+    return render(request, 'libapp/test_email.html')

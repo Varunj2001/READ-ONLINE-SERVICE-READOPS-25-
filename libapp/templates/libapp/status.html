@@ -1,0 +1,195 @@
+{% extends 'libapp/base.html' %}
+
+{% block title %}Library Status{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="container">
+    <div class="status-dashboard">
+        <h1>Library Status Dashboard</h1>
+        
+        <div class="status-cards">
+            <div class="status-card">
+                <h2>Total Books</h2>
+                <div class="status-number">{{ total_books }}</div>
+            </div>
+            
+            <div class="status-card">
+                <h2>Available Books</h2>
+                <div class="status-number">{{ available_books }}</div>
+            </div>
+            
+            <div class="status-card">
+                <h2>Borrowed Books</h2>
+                <div class="status-number">{{ borrowed_books }}</div>
+            </div>
+            
+            <div class="status-card">
+                <h2>Returned Books</h2>
+                <div class="status-number">{{ returned_books }}</div>
+            </div>
+            
+            <div class="status-card lost-books">
+                <h2>Lost Books</h2>
+                <div class="status-number">{{ lost_books }}</div>
+            </div>
+        </div>
+        
+        <h2>Users with Borrowed Books</h2>
+        <div class="users-list">
+            {% for user in users_with_books %}
+                <div class="user-item">
+                    <h3>{{ user.username }}</h3>
+                    <p>Email: {{ user.email }}</p>
+                    <p>Books borrowed: {{ user.books|length }}</p>
+                    
+                    <div class="borrowed-books">
+                        <h4>Borrowed Books:</h4>
+                        <ul>
+                            {% for book in user.books %}
+                                <li>
+                                    <strong>{{ book.title }}</strong>
+                                    <p>Received date: {{ book.start_date|date:"Y-m-d" }}</p>
+                                    <p>Due date: {{ book.end_date|date:"Y-m-d" }}</p>
+                                    <p>Status: 
+                                        {% if book.is_returned %}
+                                            <span class="status-returned">Returned</span>
+                                        {% else %}
+                                            <span class="status-borrowed {% if book.is_overdue %}status-overdue{% endif %}">
+                                                {% if book.is_overdue %}Overdue{% else %}Borrowed{% endif %}
+                                            </span>
+                                        {% endif %}
+                                    </p>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% empty %}
+                <p>No users have borrowed books.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .status-dashboard h1 {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #333;
+    }
+    
+    .status-cards {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 40px;
+    }
+    
+    .status-card {
+        flex: 1;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin: 0 10px;
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+
+    .status-card.lost-books {
+        background-color: #fff3f3;
+        border-left: 4px solid #dc3545;
+    }
+
+    .status-card.lost-books .status-number {
+        color: #dc3545;
+    }
+
+    .status-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .status-card h2 {
+        font-size: 18px;
+        color: #555;
+        margin-bottom: 15px;
+    }
+    
+    .status-number {
+        font-size: 36px;
+        font-weight: bold;
+        color: #3498db;
+    }
+    
+    .users-list {
+        margin-top: 20px;
+    }
+    
+    .user-item {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .user-item h3 {
+        color: #333;
+        margin-bottom: 10px;
+    }
+    
+    .borrowed-books {
+        margin-top: 15px;
+    }
+    
+    .borrowed-books h4 {
+        color: #555;
+        margin-bottom: 10px;
+    }
+    
+    .borrowed-books ul {
+        list-style-type: none;
+        padding: 0;
+    }
+    
+    .borrowed-books li {
+        background-color: #f9f9f9;
+        border-left: 4px solid #3498db;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+    }
+    
+    .borrowed-books li strong {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+    }
+    
+    .borrowed-books li p {
+        margin: 5px 0;
+        color: #666;
+    }
+    
+    .status-returned {
+        color: #27ae60;
+        font-weight: bold;
+    }
+    
+    .status-borrowed {
+        color: #3498db;
+        font-weight: bold;
+    }
+    
+    .status-overdue {
+        color: #e74c3c;
+    }
+</style>
+{% endblock %}

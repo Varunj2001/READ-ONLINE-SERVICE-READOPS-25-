@@ -4,6 +4,139 @@
 
 {% block content %}
 {% load static %}
+<style>
+    .user-dashboard {
+        display: flex;
+        gap: 2rem;
+        padding: 2rem;
+        min-height: calc(100vh - 60px);
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+
+    .sidebarD {
+        flex: 0 0 300px;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        height: fit-content;
+    }
+
+    .userDcon {
+        margin-bottom: 1.5rem;
+    }
+
+    .sidebarHeadD {
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .userDetails {
+        color: #666;
+        font-size: 0.95rem;
+    }
+
+    .main-contentD {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .main-contentD h2 {
+        color: #333;
+        margin-bottom: 2rem;
+        font-size: 1.8rem;
+    }
+
+    .userbooksCon {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .userh2 {
+        font-size: 1.4rem;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        font-weight: bold;
+    }
+
+    .dashboardBooksCon {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .book-tileD {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease;
+    }
+
+    .book-tileD:hover {
+        transform: translateY(-5px);
+    }
+
+    .book-tileD img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 5px;
+        margin-bottom: 1rem;
+    }
+
+    .book-tileD h3 {
+        color: #2c3e50;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+
+    .book-tileD p {
+        color: #666;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .applyfilterbtn {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 500;
+        width: 100%;
+        margin-bottom: 0.5rem;
+        transition: background-color 0.3s;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .applyfilterbtn:hover {
+        background: #0056b3;
+    }
+
+    .fine-btn {
+        background: #dc3545;
+    }
+
+    .fine-btn:hover {
+        background: #c82333;
+    }
+
+    .addNewBookbtn, .viewPaymentbtn {
+        margin-top: 1.5rem;
+    }
+</style>
+
 <div class="user-dashboard">
     <div class="sidebarD">
         <div class="userDcon">
@@ -22,42 +155,62 @@
         </div>
 
         <div class="addNewBookbtn">
-            <form action="{% url 'add_new_book' %}" method="post">
-                {% csrf_token %}
-                <button type="submit" class="applyfilterbtn">Add New Book</button>
-            </form>
+            <a href="{% url 'add_new_book' %}" class="applyfilterbtn">Add New Book</a>
         </div>
         
-        <!-- Add more user details as needed -->
+        <div class="viewPaymentbtn">
+            <a href="{% url 'view_payments' %}" class="applyfilterbtn">View Payments</a>
+        </div>
+        
+        <div class="qrScannerbtn">
+            <a href="{% url 'qr_scanner' %}" class="applyfilterbtn" style="background: linear-gradient(135deg, #667eea, #764ba2);">QR Scanner</a>
+        </div>
+        
+        <div class="qrTrackingbtn">
+            <a href="{% url 'qr_tracking_dashboard' %}" class="applyfilterbtn" style="background: linear-gradient(135deg, #28a745, #20c997);">QR Tracking</a>
+        </div>
     </div>
 
     <div class="main-contentD">
-        <h2>Books Taken:</h2>
-        {% for user in users_with_books %}
-            <div class="userbooksCon">
-                <p class="userh2">{{ user.username }}<p>
-                <div class="dashboardBooksCon ">
-                
-                    {% for book in user.books %}
-                        <div class="book-tileD">
-                            {% if book.image %}
-                                <img src="{{ book.image }}" alt="{{ book.title }}" height="200px" width="200px">
-                            {% endif %}
-                            <h3>{{ book.title }}</h3>
-                            <p>Start Date: {{ book.start_date|date:"Y-m-d" }}</p>
-                            <p>End Date: {{ book.end_date|date:"Y-m-d" }}</p>
+        <h2>Books Taken by Users</h2>
+        {% if users_with_books %}
+            {% for user in users_with_books %}
+                <div class="userbooksCon">
+                    <p class="userh2">{{ user.username }}</p>
+                    <div class="dashboardBooksCon">
+                        {% for book in user.books %}
+                            <div class="book-tileD">
+                                {% if book.image %}
+                                    <img src="{{ book.image }}" alt="{{ book.title }}">
+                                {% endif %}
+                                <h3>{{ book.title }}</h3>
+                                <p><strong>Start Date:</strong> {{ book.start_date|date:"Y-m-d" }}</p>
+                                <p><strong>End Date:</strong> {{ book.end_date|date:"Y-m-d" }}</p>
 
-                            <form action="{% url 'remind_user' %}" method="post">
-                                {% csrf_token %}
-                                <input type="hidden" name="user_id" value="{{ user.id }}">
-                                <input type="hidden" name="book_id" value="{{ forloop.counter0 }}">
-                                <button type="submit" class="applyfilterbtn">Remind User</button>
-                            </form>
-                        </div>
-                    {% endfor %}
+                                <form action="{% url 'remind_user' %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                                    <input type="hidden" name="book_title" value="{{ book.title }}">
+                                    <button type="submit" class="applyfilterbtn">Send Reminder</button>
+                                </form>
+                                
+                                <form action="{% url 'add_fine' %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                                    <input type="hidden" name="book_id" value="{{ book.id }}">
+                                    <input type="hidden" name="book_title" value="{{ book.title }}">
+                                    <button type="submit" class="applyfilterbtn fine-btn">Add Fine</button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
                 </div>
+            {% endfor %}
+        {% else %}
+            <div class="userbooksCon">
+                <p>No books are currently borrowed by users.</p>
             </div>
-        {% endfor %}
+        {% endif %}
     </div>
 </div>
 {% endblock %}

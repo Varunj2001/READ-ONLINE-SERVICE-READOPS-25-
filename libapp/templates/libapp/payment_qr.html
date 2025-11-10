@@ -1,0 +1,380 @@
+{% extends 'libapp/base.html' %}
+{% block title %}Payment - ReadOps{% endblock %}
+{% block content %}
+{% load static %}
+
+<style>
+    .payment-container {
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .payment-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+    }
+
+    .payment-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .payment-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        text-align: center;
+    }
+
+    .payment-card h3 {
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+    }
+
+    .book-info {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .book-info h4 {
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .book-info p {
+        color: #666;
+        margin: 0;
+    }
+
+    .qr-section {
+        margin-bottom: 2rem;
+    }
+
+    .qr-code {
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 2rem;
+        margin: 1rem 0;
+        display: inline-block;
+    }
+
+    .qr-code img {
+        max-width: 250px;
+        height: auto;
+    }
+
+    .payment-amount {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #28a745;
+        margin: 1rem 0;
+    }
+
+    .payment-instructions {
+        background: #e8f4fd;
+        border: 1px solid #bee5eb;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .payment-instructions h4 {
+        color: #0c5460;
+        margin-bottom: 1rem;
+    }
+
+    .payment-instructions ol {
+        color: #0c5460;
+        margin: 0;
+        padding-left: 1.5rem;
+    }
+
+    .payment-instructions li {
+        margin-bottom: 0.5rem;
+    }
+
+    .payment-methods {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .payment-method {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 1rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .payment-method:hover {
+        border-color: #667eea;
+        background: #f0f4ff;
+    }
+
+    .payment-method i {
+        font-size: 2rem;
+        color: #667eea;
+        margin-bottom: 0.5rem;
+    }
+
+    .payment-method h5 {
+        color: #2c3e50;
+        margin: 0;
+    }
+
+    .status-section {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .status-section h4 {
+        color: #856404;
+        margin-bottom: 0.5rem;
+    }
+
+    .status-section p {
+        color: #856404;
+        margin: 0;
+    }
+
+    .btn {
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        margin: 0.5rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #218838;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+        color: white;
+        text-decoration: none;
+    }
+
+    .countdown {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #dc3545;
+        margin: 1rem 0;
+    }
+
+    .upi-details {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 1rem 0;
+        font-family: monospace;
+    }
+
+    .upi-details h5 {
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .upi-details p {
+        color: #666;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="payment-container">
+    <div class="payment-header">
+        <h1><i class="fas fa-qrcode"></i> Payment Required</h1>
+        <p>Complete your payment to access the digital book</p>
+    </div>
+
+    <div class="payment-card">
+        <h3><i class="fas fa-credit-card"></i> Payment Details</h3>
+        
+        <!-- Book Information -->
+        <div class="book-info">
+            <h4>{{ book.title }}</h4>
+            <p><strong>Author:</strong> {{ book.author }}</p>
+            <p><strong>Access Type:</strong> {{ qr_payment.digital_book_access.get_access_type_display }}</p>
+        </div>
+
+        <!-- Payment Amount -->
+        <div class="payment-amount">₹{{ qr_payment.amount }}</div>
+
+        <!-- QR Code -->
+        <div class="qr-section">
+            <h4><i class="fas fa-qrcode"></i> Scan QR Code to Pay</h4>
+            {% if qr_payment.qr_code_image %}
+                <div class="qr-code">
+                    <img src="{{ qr_payment.qr_code_image.url }}" alt="Payment QR Code">
+                </div>
+            {% else %}
+                <div class="qr-code">
+                    <div style="width: 250px; height: 250px; background: #f8f9fa; border: 2px dashed #dee2e6; display: flex; align-items: center; justify-content: center; color: #6c757d;">
+                        <i class="fas fa-qrcode" style="font-size: 3rem;"></i>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Payment Instructions -->
+        <div class="payment-instructions">
+            <h4><i class="fas fa-info-circle"></i> How to Pay</h4>
+            <ol>
+                <li>Open your PhonePe, Google Pay, Paytm, or any UPI app</li>
+                <li>Scan the QR code above</li>
+                <li>Enter the amount: <strong>₹{{ qr_payment.amount }}</strong></li>
+                <li>Complete the payment</li>
+                <li>Click "Verify Payment" below</li>
+            </ol>
+        </div>
+
+        <!-- UPI Details -->
+        <div class="upi-details">
+            <h5>Manual UPI Payment</h5>
+            <p><strong>UPI ID:</strong> readops@paytm</p>
+            <p><strong>Amount:</strong> ₹{{ qr_payment.amount }}</p>
+            <p><strong>Note:</strong> Digital Book Access - {{ book.title }}</p>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="payment-methods">
+            <div class="payment-method">
+                <i class="fas fa-mobile-alt"></i>
+                <h5>PhonePe</h5>
+            </div>
+            <div class="payment-method">
+                <i class="fab fa-google-pay"></i>
+                <h5>Google Pay</h5>
+            </div>
+            <div class="payment-method">
+                <i class="fas fa-wallet"></i>
+                <h5>Paytm</h5>
+            </div>
+            <div class="payment-method">
+                <i class="fas fa-university"></i>
+                <h5>BHIM UPI</h5>
+            </div>
+        </div>
+
+        <!-- Status Section -->
+        <div class="status-section">
+            <h4><i class="fas fa-clock"></i> Payment Status</h4>
+            <p id="payment-status">Waiting for payment...</p>
+            <div class="countdown" id="countdown">Payment expires in: <span id="timer">30:00</span></div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div>
+            <button onclick="verifyPayment()" class="btn btn-primary">
+                <i class="fas fa-check"></i> Verify Payment
+            </button>
+            <a href="{% url 'digital_book_detail' book.id %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Book
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    let timeLeft = 30 * 60; // 30 minutes in seconds
+    let timerInterval;
+    
+    function updateTimer() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        document.getElementById('timer').textContent = 
+            `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            document.getElementById('payment-status').textContent = 'Payment request expired. Please try again.';
+            document.getElementById('timer').textContent = 'EXPIRED';
+        }
+        
+        timeLeft--;
+    }
+    
+    function verifyPayment() {
+        const paymentId = {{ qr_payment.id }};
+        
+        fetch(`/verify-payment/${paymentId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'completed') {
+                    document.getElementById('payment-status').textContent = 'Payment verified successfully!';
+                    document.getElementById('payment-status').style.color = '#28a745';
+                    clearInterval(timerInterval);
+                    
+                    // Redirect to book after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = "{% url 'digital_book_detail' book.id %}";
+                    }, 2000);
+                } else if (data.status === 'expired') {
+                    document.getElementById('payment-status').textContent = 'Payment request has expired.';
+                    document.getElementById('payment-status').style.color = '#dc3545';
+                } else {
+                    document.getElementById('payment-status').textContent = 'Payment is still pending. Please complete the payment and try again.';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('payment-status').textContent = 'Error verifying payment. Please try again.';
+            });
+    }
+    
+    // Start timer
+    timerInterval = setInterval(updateTimer, 1000);
+    
+    // Auto-verify every 10 seconds
+    setInterval(verifyPayment, 10000);
+</script>
+
+{% endblock %}

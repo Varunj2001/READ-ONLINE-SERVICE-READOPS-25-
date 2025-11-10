@@ -1,0 +1,345 @@
+{% extends 'libapp/base.html' %}
+{% block title %}Free Books for "{{ search_query }}" - ReadOps{% endblock %}
+
+{% block content %}
+{% load static %}
+
+<style>
+  .free-books-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .free-books-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("{% static 'Images/Explore books.jpg' %}") center/cover;
+    opacity: 0.1;
+    z-index: 0;
+  }
+
+  .free-books-hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .free-books-hero h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  }
+
+  .free-books-hero p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin-bottom: 2rem;
+  }
+
+  .free-books-container {
+    padding: 2rem;
+    background: #f8f9fa;
+    min-height: calc(100vh - 64px);
+  }
+
+  .free-books-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  .free-book-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .free-book-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .free-book-card:hover::before {
+    opacity: 1;
+  }
+
+  .free-book-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    border-color: #2ecc71;
+  }
+
+  .book-title {
+    color: #2c3e50;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+  }
+
+  .book-author {
+    color: #666;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .book-description {
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
+
+  .platform-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+
+  .free-book-btn {
+    display: inline-block;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .free-book-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .free-book-btn:hover::before {
+    left: 100%;
+  }
+
+  .free-book-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(46, 204, 113, 0.3);
+    text-decoration: none;
+    color: white;
+  }
+
+  .platforms-section {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+  }
+
+  .platforms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .platform-link {
+    display: block;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 15px;
+    text-decoration: none;
+    color: #2c3e50;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .platform-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+  }
+
+  .platform-link:hover::before {
+    transform: scaleX(1);
+  }
+
+  .platform-link:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border-color: #667eea;
+    text-decoration: none;
+    color: #2c3e50;
+  }
+
+  .platform-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #667eea;
+  }
+
+  .platform-description {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+  }
+
+  .platform-reason {
+    font-size: 0.8rem;
+    color: #888;
+    font-style: italic;
+  }
+
+  .back-to-search {
+    text-align: center;
+    margin-top: 2rem;
+  }
+
+  .back-btn {
+    display: inline-block;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .back-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    text-decoration: none;
+    color: white;
+  }
+
+  @media (max-width: 768px) {
+    .free-books-container {
+      padding: 1rem;
+    }
+
+    .free-books-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .platforms-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .free-books-hero h1 {
+      font-size: 2rem;
+    }
+  }
+</style>
+
+<div class="free-books-hero">
+  <div class="free-books-hero-content">
+    <h1><i class="fas fa-book-open"></i> Free Books Found!</h1>
+    <p>We found free alternatives for "<strong>{{ search_query }}</strong>" on various platforms</p>
+  </div>
+</div>
+
+<div class="free-books-container">
+  {% if suggestions.free_books_found %}
+    <div class="free-books-grid">
+      {% for book in suggestions.free_books_found %}
+        <div class="free-book-card">
+          <div class="platform-badge">{{ book.platform }}</div>
+          <h3 class="book-title">{{ book.title }}</h3>
+          <p class="book-author">by {{ book.author }}</p>
+          <p class="book-description">{{ book.description }}</p>
+          <a href="{{ book.url }}" target="_blank" class="free-book-btn">
+            <i class="fas fa-external-link-alt"></i> Read Free Now
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="platforms-section">
+    <h2 style="color: #2c3e50; margin-bottom: 1rem; text-align: center;">
+      <i class="fas fa-globe"></i> Search More Free Platforms
+    </h2>
+    <p style="text-align: center; color: #666; margin-bottom: 2rem;">
+      Click on any platform below to search for "<strong>{{ search_query }}</strong>" on that site
+    </p>
+    
+    <div class="platforms-grid">
+      {% for platform in suggestions.platform_links %}
+        <a href="{{ platform.url }}" target="_blank" class="platform-link">
+          <h4 class="platform-name">{{ platform.name }}</h4>
+          <p class="platform-description">{{ platform.description }}</p>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% if subject_platforms %}
+    <div class="platforms-section">
+      <h2 style="color: #2c3e50; margin-bottom: 1rem; text-align: center;">
+        <i class="fas fa-graduation-cap"></i> Recommended for {{ subject|title }}
+      </h2>
+      <p style="text-align: center; color: #666; margin-bottom: 2rem;">
+        These platforms are particularly good for {{ subject }} books
+      </p>
+      
+      <div class="platforms-grid">
+        {% for platform in subject_platforms %}
+          <a href="{{ platform.url }}" target="_blank" class="platform-link">
+            <h4 class="platform-name">{{ platform.name }}</h4>
+            <p class="platform-description">{{ platform.description }}</p>
+            <p class="platform-reason">{{ platform.reason }}</p>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="back-to-search">
+    <a href="{% url 'explore' %}" class="back-btn">
+      <i class="fas fa-arrow-left"></i> Back to Library Search
+    </a>
+  </div>
+</div>
+
+{% endblock %}
